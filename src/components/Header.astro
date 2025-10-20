@@ -1,0 +1,100 @@
+---
+const logoName = "Urdiales-Espinoza";
+
+---
+
+<header class="main-header">
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <img src="/logo-cm-ue.svg" alt="Logo Centro Médico Urdiales-Espinoza" height="40" />
+            <div class="logo-name">
+                <span>{logoName.toUpperCase()}</span>
+                <span>CENTRO MÉDICO</span>
+            </div>
+        </a>
+        <!-- <div class="nav-links">
+            <a href="#" class="nav-link">Inicio</a>
+        </div> -->
+        <div>
+            <a href="/login" class="btn btn-primary nav-login-btn">
+                <img src="/src/icons/user.svg" alt="User icon" width="20px">
+                Iniciar Sesión
+                <img src="/src/icons/login.svg" class="icon icon-translate" alt="Login icon">
+            </a>
+        </div>
+    </nav>
+</header>
+
+<style>
+    .main-header {
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem 2rem;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--color-primary);
+        text-shadow: 1px 1px 2px #08233e32;
+
+
+        .logo-name {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-name span {
+            font-weight:700;
+        }
+
+        .logo-name span:nth-child(2) {
+            color: var(--color-gray);
+            font-weight: 300;
+            text-align: center;
+            }
+        }
+        
+
+    /* .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .nav-link {
+        color: var(--color-text);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem;
+        transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+        color: var(--color-primary);
+    } */
+
+    .nav-login-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Media query para pantallas más pequeñas si es necesario */
+    @media (max-width: 768px) {
+        .navbar {
+            padding: 1rem 1rem;
+        }
+    }
+</style>

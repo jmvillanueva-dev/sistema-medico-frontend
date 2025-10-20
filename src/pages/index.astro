@@ -1,16 +1,95 @@
 ---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
 
+// Títulos y textos
+const medicalCenterName = "Centro Médico Urdiales-Espinoza";
+const systemDescription = "Sistema de Gestión de Historias Clínicas";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Iniciar Sesion | Sistema Medico</title>
-	</head>
-	<body>
-		<h1>Centro Medico Urdiales-Espinoza</h1>
-	</body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{medicalCenterName}</title>
+</head>
+<body class="overlay-bg">
+    <Header />
+
+    <main class="hero-section">
+        <div class="hero-content">
+            <h1 class="center-name">
+                Centro Médico <br> Urdiales-Espinoza
+            </h1>
+            
+            <h2 class="system-title">
+                {systemDescription}
+            </h2>
+
+            <div class="hero-buttons">
+                <a href="/tutorial-video" class="btn btn-secondary">
+                    <img src="/src/icons/play.svg" class="icon icon-scale" alt="Login icon">
+                    Ver Video Tutorial
+                </a>
+                
+                <a href="/login" class="btn btn-primary">
+                    <img src="/src/icons/clinical.svg" class="icon icon-scale   " alt="Login icon">
+                    Empezar Ahora
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <Footer />
+</body>
 </html>
+
+<style>
+    .hero-section {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .center-name {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        color: var(--color-dark);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .system-title {
+        font-size: clamp(1.2rem, 2.5vw, 2rem);
+        color: var(--color-dark);
+        opacity: 0.7;
+        font-weight: 400;
+        margin-bottom: 1rem;
+    }
+
+    .hero-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    /* Media query para apilar botones en móviles */
+    @media (max-width: 600px) {
+        .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+</style>

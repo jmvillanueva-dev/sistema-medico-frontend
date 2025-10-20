@@ -1,0 +1,54 @@
+---
+const currentYear = new Date().getFullYear();
+const developer = "jmvillanueva";
+---
+
+<footer class="main-footer">
+    <span>
+        <p>&copy; {currentYear} Derechos Reservados</p>
+    </span>
+    <span>
+        <a href="https://github.com/jmvillanueva-dev" class="developer-info" target="_blank" rel="noopener noreferrer">
+                | Desarrollado por
+                <img src="/src/icons/social-media/github.svg" alt="" width="16px"> 
+                <strong>{developer}</strong> | 
+        </a>
+    </span>
+    <span>
+        <img src="/src/icons/ecuador.svg" alt="Bandera Ecuador"> 
+        Hecho en Ecuador
+    </span>
+</footer>
+
+<style>
+    .main-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: auto;
+        width: 100%;
+        opacity: 0.8;
+        padding: 1.5rem 2rem;
+        color: var(--color-gray);
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .main-footer p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .developer-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--color-gray);
+    }
+
+    .developer-info:hover strong {
+        text-decoration: underline;
+    }
+</style>

@@ -1,0 +1,150 @@
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/PublicSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/PublicSans-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rubik";
+  src: url("/fonts/Rubik-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rubik";
+  src: url("/fonts/Rubik-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rubik";
+  src: url("/fonts/Rubik-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: bold;
+  font-display: swap;
+}
+
+:root {
+  /* Paleta de Colores */
+  --color-dark: #171818;
+  --color-gray: #7d8389;
+  --color-primary: #195ee6;
+  --color-secondary: #29cce5;
+  --color-light: #f2f9ff;
+  --color-text: var(--color-dark);
+}
+
+/* Estilos de Reset y Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    "Rubik",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
+  background-color: var(--color-light);
+  background: linear-gradient(217deg, rgba(0, 255, 234, 0.2), transparent 70.71%),
+  linear-gradient(127deg, rgba(0, 187, 255, 0.3), transparent 70.71%),
+  linear-gradient(336deg, rgba(0, 221, 255, 0.2), transparent 70.71%);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2 {
+  font-family: "Public Sans", sans-serif;
+}
+
+a {
+  text-decoration: none;
+  font-weight: 300;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s;
+}
+
+/* Estilo Base para Botones */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem;
+  font-size: 1rem;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 100px;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s;
+  cursor: pointer;
+}
+
+/* Botón Primario */
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-light);
+  transition:
+    background 0.3s,
+    transform 0.3s;
+}
+
+.btn-primary:hover {
+  background: #124cc1;
+  box-shadow: 0px 0px 150px var(--color-secondary);
+}
+
+.btn-primary:hover .icon-translate {
+  transform: translateX(5px);
+}
+
+.btn-primary:hover .icon-scale,
+.btn-secondary:hover .icon-scale {
+  transform: scale(1.2);
+}
+
+/* Botón Secundario/Outline */
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid;
+  border-color: var(--color-primary);
+}
+
+.btn-secondary:hover {
+  background-color: #124cc111;
+  box-shadow: 0px 0px 150px var(--color-primary);
+}
