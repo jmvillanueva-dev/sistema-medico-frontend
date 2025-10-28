@@ -1,6 +1,6 @@
 ---
-import LogoutButton from "@/components/LogoutButton.tsx";
-import UserIcon from "@/icons/user.svg?raw";
+import UserDropdown from "@/components/UserDropdown.tsx";
+import "@/components/UserDropdown.css";
 
 const userCookie = Astro.cookies.get("auth-user")?.value;
 let user = null;
@@ -30,10 +30,7 @@ const userEmail = user?.email || "";
         <span class="user-name">{userName}</span>
         <span class="user-email">{userEmail}</span>
       </div>
-      <div class="user-avatar">
-        <Fragment set:html={UserIcon} />
-      </div>
-      <LogoutButton client:load />
+      <UserDropdown client:load />
     </div>
   </div>
 </header>
