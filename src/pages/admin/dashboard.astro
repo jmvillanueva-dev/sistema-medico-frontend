@@ -1,0 +1,18 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import DashboardHeader from "@/components/DashboardHeader.astro";
+---
+
+<MainLayout title="Dashboard Administrador">
+  <DashboardHeader />
+  <main class="hero-section">
+    <div class="hero-content">
+      <h1 class="center-name">Panel de Administración</h1>
+      <p>Aquí irán las herramientas de administrador.</p>
+    </div>
+  </main>
+</MainLayout>
+
+<style is:global>
+  @import "../../styles/global.css";
+</style>

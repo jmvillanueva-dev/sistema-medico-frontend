@@ -1,0 +1,128 @@
+---
+import LogoutButton from "@/components/LogoutButton.tsx";
+import { getDashboardPath } from "@/utils/navigation";
+
+const logoName = "Urdiales-Espinoza";
+
+// Leer la cookie de autenticación en el servidor
+const userCookie = Astro.cookies.get("auth-user")?.value;
+let user = null;
+let dashboardPath = "/login";
+
+if (userCookie) {
+  try {
+    user = JSON.parse(userCookie);
+    dashboardPath = getDashboardPath(user.roles);
+  } catch (e) {
+    user = null;
+  }
+}
+
+const isAuthenticated = !!user;
+---
+
+<header class="main-header">
+  <nav class="navbar">
+    <a href="/" class="logo">
+      <img
+        src="/logo-cm-ue.svg"
+        alt="Logo Centro Médico Urdiales-Espinoza"
+        height="40"
+      />
+      <div class="logo-name">
+        <span>{logoName.toUpperCase()}</span>
+        <span>CENTRO MÉDICO</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      {
+        isAuthenticated ? (
+          <>
+            <a href={dashboardPath} class="btn btn-primary nav-login-btn">
+              <img src="/src/icons/user.svg" alt="User icon" width="20px" />
+              Mi Panel
+            </a>
+            <LogoutButton client:load />
+          </>
+        ) : (
+          <a href="/login" class="btn btn-primary nav-login-btn">
+            <img src="/src/icons/user.svg" alt="User icon" width="20px" />
+            Iniciar Sesión
+            <img
+              src="/src/icons/login.svg"
+              class="icon icon-translateX"
+              alt="Login icon"
+            />
+          </a>
+        )
+      }
+    </div>
+  </nav>
+</header>
+
+<style>
+  .main-header {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .nav-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .main-header {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: var(--color-primary);
+    text-shadow: 1px 1px 2px #08233e32;
+  }
+
+  .logo-name {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-name span {
+    font-weight: 400;
+  }
+
+  .logo-name span:nth-child(2) {
+    color: var(--color-gray);
+    font-weight: 300;
+    text-align: center;
+  }
+
+  .nav-login-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Media query para pantallas más pequeñas si es necesario */
+  @media (max-width: 768px) {
+    .navbar {
+      padding: 1rem 1rem;
+    }
+  }
+</style>

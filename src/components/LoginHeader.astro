@@ -1,0 +1,74 @@
+---
+
+---
+
+<header class="login-header">
+  <div class="container">
+    <a href="/" class="back-link">
+      <img
+        class="icon icon-scale icon-translateY"
+        src="/src/icons/arrow-left.svg"
+        alt="Fecha Retroseso "
+      />
+      Regresar al Inicio
+    </a>
+    <a href="/" class="logo">
+      <img
+        src="/logo-cm-ue.svg"
+        alt="Logo Centro Médico Urdiales-Espinoza"
+        height="40"
+      />
+    </a>
+  </div>
+</header>
+
+<style>
+  .login-header {
+    width: 100%;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border-secondary);
+    background-color: var(--color-background);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: var(--color-primary);
+  }
+
+  .back-link:hover .icon-translateY {
+    transform: translateX(-5px);
+  
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 1rem;
+    }
+    .logo {
+      display: none;
+    }
+    .placeholder {
+      display: none;
+    }
+    .container {
+      justify-content: flex-start;
+    }
+  }
+</style>

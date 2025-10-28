@@ -1,0 +1,14 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import SelectModuleComponent from "@/components/SelectModule";
+---
+
+<MainLayout title="Seleccionar Módulo">
+  <main class="login-page">
+    <div class="login-container">
+      <h1 class="login-title">Elige un módulo</h1>
+      <p class="login-subtitle">Escoge una opción disponible</p>
+      <SelectModuleComponent client:load />
+    </div>
+  </main>
+</MainLayout>

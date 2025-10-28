@@ -1,0 +1,114 @@
+---
+import LogoutButton from "@/components/LogoutButton.tsx";
+import UserIcon from "@/icons/user.svg?raw";
+
+const userCookie = Astro.cookies.get("auth-user")?.value;
+let user = null;
+if (userCookie) {
+  try {
+    user = JSON.parse(userCookie);
+  } catch (e) {
+    user = null;
+  }
+}
+const userName = user?.name || "Usuario";
+const userEmail = user?.email || "";
+---
+
+<header class="dashboard-header">
+  <div class="container">
+    <a href="/" class="logo">
+      <img
+        src="/logo-cm-ue.svg"
+        alt="Logo Centro Médico Urdiales-Espinoza"
+        height="32"
+      />
+    </a>
+
+    <div class="user-menu">
+      <div class="user-info">
+        <span class="user-name">{userName}</span>
+        <span class="user-email">{userEmail}</span>
+      </div>
+      <div class="user-avatar">
+        <Fragment set:html={UserIcon} />
+      </div>
+      <LogoutButton client:load />
+    </div>
+  </div>
+</header>
+
+<style>
+  .dashboard-header {
+    width: 100%;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 0.75rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    color: #777;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .user-avatar :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: #555;
+  }
+
+  @media (max-width: 768px) {
+    .user-info {
+      display: none;
+    }
+    .container {
+      padding: 0 1rem;
+    }
+  }
+</style>
