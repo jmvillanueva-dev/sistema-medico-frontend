@@ -1,0 +1,72 @@
+.profile-manager {
+    display: flex;
+    gap: 2rem;
+}
+
+.profile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.nav-button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-button:hover {
+    background-color: #f4f4f4;
+}
+
+.nav-button.active {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.profile-content {
+    flex-grow: 1;
+    border-left: 1px solid #eee;
+    padding-left: 2rem;
+    width: 600px; /* Fixed width */
+    max-width: 100%; /* Ensure it doesn't overflow container */
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 850px) { /* A bit wider breakpoint to be safe */
+    .profile-manager {
+        flex-direction: column;
+        gap: 2.5rem; /* Increase gap for vertical layout */
+    }
+
+    .profile-nav {
+        flex-direction: row;
+        width: 100%;
+        overflow-x: auto; /* Allow horizontal scrolling for nav buttons */
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #eee;
+    }
+
+    .nav-button {
+        flex-shrink: 0; /* Prevent buttons from shrinking */
+        width: auto; /* Auto width based on content */
+    }
+
+    .profile-content {
+        border-left: none;
+        padding-left: 0;
+        width: 100%; /* Take full width in vertical layout */
+    }
+}

@@ -1,0 +1,59 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import DashboardHeader from "@/components/DashboardHeader.astro";
+import ProfileManager from "@/components/ProfileManager.tsx";
+---
+
+<MainLayout title="Mi Perfil">
+  <DashboardHeader />
+  <div class="profile-page-container">
+    <header class="profile-header">
+      <h1>Mi Perfil</h1>
+      <p>Gestiona la información de tu cuenta, correo y contraseña.</p>
+    </header>
+    <main class="profile-main-content">
+      <ProfileManager client:load />
+    </main>
+  </div>
+</MainLayout>
+
+<style>
+  .profile-page-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+
+  .profile-header {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .profile-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-header p {
+    font-size: 1.1rem;
+    color: #666;
+  }
+
+  .profile-main-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .profile-page-container {
+        padding: 0 1rem;
+    }
+    .profile-main-content {
+        padding: 1.5rem;
+    }
+  }
+</style>

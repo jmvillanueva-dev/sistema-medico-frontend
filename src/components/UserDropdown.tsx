@@ -5,6 +5,7 @@ import ArrowUpIcon from "@/icons/arrow-up.svg";
 import ArrowDownIcon from "@/icons/arrow-down.svg";
 import UserIcon from "@/icons/user-card.svg";
 import ChangeModuleIcon from "@/icons/switch.svg";
+import ProfileIcon from "@/icons/user.svg";
 
 interface UserDropdownProps {
   roles?: string[];
@@ -56,6 +57,10 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ roles = [] }) => {
       />
       {isOpen && (
         <div className="dropdown-menu">
+          <a href="/profile" className="dropdown-item">
+            <img src={ProfileIcon.src} alt="Mi Perfil" className="icon" />
+            Mi Perfil
+          </a>
           {canChangeModule && (
             <a href="/select-module" className="dropdown-item">
               <img src={ChangeModuleIcon.src} alt="" className="icon" />
