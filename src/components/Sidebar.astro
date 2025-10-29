@@ -1,0 +1,50 @@
+---
+import "./Sidebar.css";
+
+const { url } = Astro;
+
+const menuItems = [
+  {
+    href: "/admin/dashboard",
+    name: "Dashboard",
+  },
+  {
+    href: "/admin/employees",
+    name: "Empleados",
+  },
+  {
+    href: "/admin/users",
+    name: "Usuarios",
+  },
+  {
+    href: "/admin/patients",
+    name: "Pacientes",
+  },
+  {
+    href: "/admin/clinical-records",
+    name: "Historias Clínicas",
+  },
+];
+---
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="/admin/dashboard">
+      <img src="/logo-cm-ue.svg" alt="Logo" class="sidebar-logo" />
+    </a>
+  </div>
+  <nav class="sidebar-nav">
+    <ul>
+      {menuItems.map((item) => {
+        const isActive = url.pathname.startsWith(item.href);
+        return (
+          <li>
+            <a href={item.href} class:list={{ active: isActive }}>
+              {item.name}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+</aside>

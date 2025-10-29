@@ -1,17 +1,16 @@
 ---
-import MainLayout from "@/layouts/MainLayout.astro";
-import DashboardHeader from "@/components/DashboardHeader.astro";
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
 ---
 
-<MainLayout title="Dashboard Administrador">
-  <DashboardHeader />
-  <main class="hero-section">
-    <div class="hero-content">
-      <h1 class="center-name">Panel de Administración</h1>
-      <p>Aquí irán las herramientas de administrador.</p>
-    </div>
-  </main>
-</MainLayout>
+<DashboardLayout title="Dashboard Administrador">
+  <div class="hero-content">
+    <h1 class="center-name">Panel de Administración</h1>
+    <p>
+      Bienvenido al panel de administración. Aquí se mostrarán las últimas
+      actividades, como las historias clínicas recientemente actualizadas.
+    </p>
+  </div>
+</DashboardLayout>
 
 <style is:global>
   @import "../../styles/global.css";
