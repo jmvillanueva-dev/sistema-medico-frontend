@@ -17,6 +17,9 @@ import {
 interface User {
   email: string;
   roles: string[];
+  employeeId: string;
+  name: string;
+  lastName: string;
 }
 
 // LockoutState ya no se define aquí
@@ -80,9 +83,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       // 2. Llamada API
       const response = await api.post("/auth/login", credentials);
-      const { accessToken, email, roles } = response.data;
+      const { accessToken, email, roles, employeeId, name, lastName } =
+        response.data;
 
-      const user: User = { email, roles };
+      const user: User = { email, roles, employeeId, name, lastName };
 
       // 3. Guardar en Cookies
       const cookieOptions = {
