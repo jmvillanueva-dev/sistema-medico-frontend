@@ -1,5 +1,4 @@
 ---
-import LogoutButton from "@/components/LogoutButton.tsx";
 import { getDashboardPath } from "@/utils/navigation";
 
 const logoName = "Urdiales-Espinoza";
@@ -36,16 +35,6 @@ const isAuthenticated = !!user;
     </a>
 
     <div class="nav-actions">
-      {
-        isAuthenticated ? (
-          <>
-            <a href={dashboardPath} class="btn btn-primary nav-login-btn">
-              <img src="/src/icons/user.svg" alt="User icon" width="20px" />
-              Mi Panel
-            </a>
-            <LogoutButton client:load />
-          </>
-        ) : (
           <a href="/login" class="btn btn-primary nav-login-btn">
             <img src="/src/icons/user.svg" alt="User icon" width="20px" />
             Iniciar Sesión
@@ -55,8 +44,8 @@ const isAuthenticated = !!user;
               alt="Login icon"
             />
           </a>
-        )
-      }
+
+
     </div>
   </nav>
 </header>

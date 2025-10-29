@@ -30,7 +30,7 @@ const userEmail = user?.email || "";
         <span class="user-name">{userName}</span>
         <span class="user-email">{userEmail}</span>
       </div>
-      <UserDropdown client:load />
+      <UserDropdown client:load roles={user?.roles} />
     </div>
   </div>
 </header>

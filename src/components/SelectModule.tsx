@@ -1,38 +1,37 @@
 import React from "react";
+import "./forms/SelectModule.css";
+import adminIcon from "@/icons/user-admin.svg";
+import medicalIcon from "@/icons/clinical.svg";
 
 const SelectModule: React.FC = () => {
   return (
-    <div className="module-selection-buttons">
-      <a
-        href="/admin/dashboard"
-        className="btn btn-primary btn-submit"
-        style={{ textDecoration: "none" }}
-      >
-        Ingresar como Administrador
+    <div className="module-selection-container">
+      <a href="/admin/dashboard" className="module-card">
+        <img
+          src={adminIcon.src}
+          alt="Administrador"
+          className="module-card-icon"
+        />
+        <span className="module-card-title">
+          Ingresar como
+          <br />
+          Administrador
+        </span>
       </a>
-      <a
-        href="/medical/dashboard"
-        className="btn btn-secondary btn-submit"
-        style={{
-          textDecoration: "none",
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
-        Ingresar como Personal Médico
+      <a href="/medical/dashboard" className="module-card">
+        <img
+          src={medicalIcon.src}
+          alt="Personal Médico"
+          className="module-card-icon"
+        />
+        <span className="module-card-title">
+          Ingresar como
+          <br />
+          Personal Médico
+        </span>
       </a>
     </div>
   );
 };
 
 export default SelectModule;
-
-// Añade este estilo a src/styles/global.css si lo deseas
-/*
-.module-selection-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-*/

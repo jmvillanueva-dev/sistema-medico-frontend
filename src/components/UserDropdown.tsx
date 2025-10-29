@@ -3,9 +3,14 @@ import { useAuthStore } from "@/store/authStore";
 import LogoutIcon from "@/icons/logout.svg";
 import ArrowUpIcon from "@/icons/arrow-up.svg";
 import ArrowDownIcon from "@/icons/arrow-down.svg";
-import UserIcon from "@/icons/user-admin.svg";
+import UserIcon from "@/icons/user-card.svg";
+import ChangeModuleIcon from "@/icons/switch.svg";
 
-const UserDropdown = () => {
+interface UserDropdownProps {
+  roles?: string[];
+}
+
+const UserDropdown: React.FC<UserDropdownProps> = ({ roles = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
@@ -20,7 +25,10 @@ const UserDropdown = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -30,6 +38,8 @@ const UserDropdown = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const canChangeModule = roles.includes("ADMINISTRADOR") && roles.length > 1;
 
   return (
     <div className="user-dropdown" ref={dropdownRef}>
@@ -46,8 +56,14 @@ const UserDropdown = () => {
       />
       {isOpen && (
         <div className="dropdown-menu">
+          {canChangeModule && (
+            <a href="/select-module" className="dropdown-item">
+              <img src={ChangeModuleIcon.src} alt="" className="icon" />
+              Cambiar Módulo
+            </a>
+          )}
           <button onClick={handleLogout} className="dropdown-item">
-            <img src={LogoutIcon.src} alt="" className="icon" />
+            <img src={LogoutIcon.src} alt="Cerrar Sesión Icon" className="icon" />
             Cerrar sesión
           </button>
         </div>

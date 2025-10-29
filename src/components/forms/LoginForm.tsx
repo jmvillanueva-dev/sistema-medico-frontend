@@ -23,6 +23,7 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const LoginForm: React.FC = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
 
@@ -141,13 +142,31 @@ const LoginForm: React.FC = () => {
 
       <div className="form-group">
         <label htmlFor="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          {...register("password")}
-          className={`form-input ${errors.password ? "input-error" : ""}`}
-          disabled={isFormDisabled}
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            {...register("password")}
+            className={`form-input ${errors.password ? "input-error" : ""}`}
+            disabled={isFormDisabled}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+            disabled={isFormDisabled}
+          >
+            {showPassword ? "Ocultar" : "Mostrar"}
+          </button>
+        </div>
         {errors.password && (
           <p className="error-message">{errors.password.message}</p>
         )}
