@@ -32,6 +32,10 @@ api.interceptors.request.use(
 );
 
 // Funciones para el perfil del empleado
+export const getEmployees = () => {
+  return api.get("/empleados");
+};
+
 export const getEmployeeById = (employeeId: string) => {
   return api.get(`/empleados/${employeeId}`);
 };
@@ -45,6 +49,18 @@ export const updateEmployeeEmail = (
   data: { nuevoEmail: string }
 ) => {
   return api.put(`/empleados/${employeeId}/email`, data);
+};
+
+export const deleteEmployee = (employeeId: string) => {
+  return api.delete(`/empleados/${employeeId}`);
+};
+
+export const createEmployee = (data: object) => {
+  return api.post("/empleados", data);
+};
+
+export const updateEmployeePassword = (employeeId: string, data: object) => {
+  return api.put(`/empleados/${employeeId}/password`, data);
 };
 
 export const updateMyPassword = (data: object) => {

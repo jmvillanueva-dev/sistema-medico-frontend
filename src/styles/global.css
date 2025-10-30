@@ -69,6 +69,7 @@ body {
     "Open Sans",
     "Helvetica Neue",
     sans-serif;
+  font-size: 13px;
   background-color: var(--color-light);
   background: linear-gradient(217deg, rgba(0, 255, 234, 0.1), transparent 70.71%),
   linear-gradient(127deg, rgba(0, 187, 255, 0.2), transparent 70.71%),
@@ -189,12 +190,12 @@ a {
   color: var(--color-gray);
   margin-bottom: 2rem;
 }
-
+/* 
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
+} */
 
 .form-group {
   text-align: left;
@@ -223,7 +224,7 @@ a {
   box-shadow: 0 0 0 3px rgba(25, 94, 230, 0.1);
 }
 
-.form-input.input-error {
+/* .form-input.input-error {
   border-color: #d92d20;
 }
 
@@ -231,7 +232,7 @@ a {
   color: #d92d20;
   font-size: 0.875rem;
   margin-top: 0.25rem;
-}
+} */
 
 .btn-submit {
   width: 100%;

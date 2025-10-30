@@ -1,8 +1,8 @@
 ---
 import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import EmployeesManager from "@/components/EmployeesManager.tsx";
 ---
 
 <DashboardLayout title="Gestión de Empleados">
-  <h1>Empleados</h1>
-  <p>Aquí se mostrará la lista de empleados y las opciones para administrarlos.</p>
+  <EmployeesManager client:load />
 </DashboardLayout>
