@@ -1,3 +1,4 @@
+/* Sidebar.css */
 .sidebar {
   width: var(--sidebar-width);
   background-color: #fff;
@@ -7,6 +8,10 @@
   flex-direction: column;
   margin: 12px;
   padding: 1.5rem;
+  position: sticky;
+  top: 12px;
+  height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 
 .sidebar-header {
@@ -16,34 +21,155 @@
   text-align: center;
 }
 
-.sidebar-logo {
-  max-width: 150px;
-  height: auto;
+.sidebar-brand {
+  display: flex;
+  align-items: center ;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
-.sidebar-nav ul {
+.sidebar-logo {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar-title {
+  font-size: 1.2rem;
+}
+
+.nav-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.sidebar-nav li a {
-  display: block;
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius-medium);
   color: var(--color-text-primary);
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
 }
 
-.sidebar-nav li a:hover {
+.nav-link:hover {
   background-color: var(--color-background-tertiary);
   color: var(--color-primary);
 }
 
-.sidebar-nav li a.active {
+.nav-link.active {
   background-color: var(--color-primary);
   color: var(--color-light);
   font-weight: 700;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Estilos para el submenú */
+.has-submenu > .nav-link {
+  position: relative;
+  padding-right: 2.5rem;
+}
+
+.arrow {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transition: transform 0.3s ease;
+}
+
+.has-submenu.open > .nav-link > .arrow {
+  transform: translateY(-25%) rotate(225deg);
+}
+
+.submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.has-submenu.open > .submenu {
+  max-height: 500px;
+}
+
+.submenu-item {
+  margin: 0.125rem 0;
+}
+
+.submenu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem 0.6rem 2rem;
+  border-radius: var(--border-radius-medium);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.submenu-link:hover {
+  background-color: var(--color-background-tertiary);
+  color: var(--color-primary);
+}
+
+.submenu-link.active {
+  color: var(--color-primary);
+  font-weight: 600;
+  background-color: var(--color-gray);
+}
+
+.submenu-bullet {
+  color: var(--color-text-tertiary);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.submenu-link.active .submenu-bullet {
+  color: var(--color-primary);
+}
+
+/* Indicador visual para items activos */
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background-color: currentColor;
+  border-radius: 0 2px 2px 0;
 }

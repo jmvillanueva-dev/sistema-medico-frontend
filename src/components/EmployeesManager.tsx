@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import "./EmployeesManager.css";
 import { getEmployees, deleteEmployee, getEmployeeById } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
 import EmployeeFormModal from "./EmployeeFormModal";
+
+import "./EmployeesManager.css";
 
 import EditIcon from "@/icons/system/edit.svg";
 import DeleteIcon from "@/icons/system/delete.svg";

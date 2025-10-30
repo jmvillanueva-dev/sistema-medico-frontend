@@ -2,7 +2,9 @@ import { useState } from "react";
 import type { Employee } from "./EmployeesManager";
 import EmployeeProfileForm from "./forms/EmployeeProfileForm";
 import EmployeeEmailForm from "./forms/EmployeeEmailForm";
-import "./EmployeeFormModal.css";
+import "./EmployeeFormModal.css"
+
+import CloseIcon from "@/icons/system/close.svg";
 
 interface Props {
   isOpen: boolean;
@@ -34,7 +36,9 @@ export default function EmployeeFormModal({ isOpen, onClose, onSave, employee }:
   return (
     <div className="modal-overlay">
       <div className="modal-content form-modal">
-        <button onClick={handleClose} className="btn close-button">&times; Cerrar</button>
+        <button onClick={handleClose} className="btn close-button">
+          <img src={CloseIcon.src} alt="Icon Cerrar" className="icon icon-scale" />
+          Cerrar</button>
         <div className="form-modal-header">
           <h2>{title}</h2>
         </div>

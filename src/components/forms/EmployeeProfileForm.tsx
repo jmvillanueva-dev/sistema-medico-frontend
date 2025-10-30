@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useController } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { registerEmployee, updateEmployee, getRoles } from "@/services/api";
 import type { Employee } from "../EmployeesManager";
 import NotificationToast from "@/components/common/NotificationToast.tsx";
+import RoleSelector from "./RoleSelector";
 
 import "./UpdateForm.css";
 
@@ -22,7 +23,6 @@ const createEmployeeSchema = z.object({
 
 // Esquema para actualización (sin email y roles)
 const updateProfileSchema = createEmployeeSchema.omit({ email: true, roles: true });
-
 
 interface Role {
   id: string;
@@ -44,13 +44,17 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
     register,
     handleSubmit,
     reset,
+    control, // Importar control para useController
     formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(isEditing ? updateProfileSchema : createEmployeeSchema),
+    defaultValues: { roles: [] }, // Inicializar roles como array vacío
   });
 
+  // Hook para el campo de roles
+  const { field: rolesField } = useController({ name: 'roles', control });
+
   useEffect(() => {
-    // Cargar roles solo en modo creación
     if (!isEditing) {
       const fetchRoles = async () => {
         try {
@@ -110,6 +114,7 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
     <>
       {notification && <NotificationToast isVisible message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
+        {/* ... otros campos del formulario ... */}
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="nombre">Nombre</label>
@@ -158,14 +163,11 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
         {!isEditing && (
           <div className="form-group">
             <label>Roles</label>
-            <div className="roles-checkbox-group">
-              {availableRoles.map((role) => (
-                <div key={role.id} className="checkbox-item">
-                  <input type="checkbox" id={role.id} value={role.nombre} {...register("roles")} />
-                  <label htmlFor={role.id}>{role.nombre}</label>
-                </div>
-              ))}
-            </div>
+            <RoleSelector
+              availableRoles={availableRoles}
+              selectedRoles={rolesField.value}
+              onChange={rolesField.onChange}
+            />
             {errors.roles && <p className="error-message">{errors.roles.message as string}</p>}
           </div>
         )}

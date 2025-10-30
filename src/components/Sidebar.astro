@@ -3,49 +3,260 @@ import "./Sidebar.css";
 
 const { url } = Astro;
 
-const menuItems = [
+// Definir tipos para TypeScript
+interface MenuItemBase {
+  name: string;
+  icon: string;
+}
+
+interface MenuItemWithHref extends MenuItemBase {
+  href: string;
+  subItems?: never;
+}
+
+interface MenuItemWithSubItems extends MenuItemBase {
+  href?: never;
+  subItems: {
+    name: string;
+    href: string;
+  }[];
+}
+
+type MenuItem = MenuItemWithHref | MenuItemWithSubItems;
+
+const menuItems: MenuItem[] = [
   {
-    href: "/admin/dashboard",
     name: "Dashboard",
+    href: "/admin/dashboard",
+    icon: "📊",
   },
   {
-    href: "/admin/employees",
     name: "Empleados",
+    icon: "👥",
+    subItems: [
+      {
+        name: "Lista de Empleados",
+        href: "/admin/employees",
+      },
+      {
+        name: "Gestión de Roles",
+        href: "/admin/roles",
+      },
+    ],
   },
   {
-    href: "/admin/users",
     name: "Usuarios",
+    href: "/admin/users",
+    icon: "👤",
   },
   {
-    href: "/admin/patients",
     name: "Pacientes",
+    href: "/admin/patients",
+    icon: "🏥",
   },
   {
-    href: "/admin/clinical-records",
     name: "Historias Clínicas",
+    href: "/admin/clinical-records",
+    icon: "📋",
   },
 ];
+
+// Función para determinar si un item está activo
+const isItemActive = (item: { href?: string }): boolean => {
+  if (item.href) {
+    return (
+      url.pathname === item.href || url.pathname.startsWith(item.href + "/")
+    );
+  }
+  return false;
+};
+
+const isSubItemActive = (subItems: { href: string }[]): boolean => {
+  return subItems.some((subItem) => isItemActive(subItem));
+};
+
+// Función helper para generar IDs seguros
+const generateId = (name: string): string => {
+  return `submenu-${name.toLowerCase().replace(/\s+/g, "-")}`;
+};
 ---
 
 <aside class="sidebar">
   <div class="sidebar-header">
-    <a href="/admin/dashboard">
-      <img src="/src/icons/system/menu.svg" alt="Menu Icon" class="sidebar-logo" />
-       MENU
+    <a href="/admin/dashboard" class="sidebar-brand">
+      <img
+        src="/src/icons/system/menu.svg"
+        alt="Menu Icon"
+        class="sidebar-logo"
+      />
+      <span class="sidebar-title">MENU</span>
     </a>
   </div>
+
   <nav class="sidebar-nav">
-    <ul>
-      {menuItems.map((item) => {
-        const isActive = url.pathname.startsWith(item.href);
-        return (
-          <li>
-            <a href={item.href} class:list={{ active: isActive }}>
-              {item.name}
-            </a>
-          </li>
-        );
-      })}
+    <ul class="nav-list">
+      {
+        menuItems.map((item) => {
+          const hasSubItems =
+            "subItems" in item && item.subItems && item.subItems.length > 0;
+          const isActive = hasSubItems
+            ? isSubItemActive(item.subItems)
+            : isItemActive(item);
+          const isParentActive = hasSubItems && isSubItemActive(item.subItems);
+
+          if (hasSubItems && item.subItems) {
+            const submenuId = generateId(item.name);
+
+            return (
+              <li
+                class:list={[
+                  "nav-item",
+                  "has-submenu",
+                  { open: isParentActive },
+                ]}
+              >
+                <button
+                  type="button"
+                  class:list={[
+                    "nav-link",
+                    "submenu-toggle",
+                    { active: isParentActive },
+                  ]}
+                  data-submenu={submenuId}
+                >
+                  <span class="nav-icon">{item.icon}</span>
+                  <span class="nav-text">{item.name}</span>
+                  <span class="arrow" />
+                </button>
+                <ul id={submenuId} class="submenu">
+                  {item.subItems.map((subItem) => {
+                    const isChildActive = isItemActive(subItem);
+                    return (
+                      <li class="submenu-item">
+                        <a
+                          href={subItem.href}
+                          class:list={[
+                            "submenu-link",
+                            { active: isChildActive },
+                          ]}
+                          data-nav-item
+                        >
+                          <span class="submenu-bullet">•</span>
+                          {subItem.name}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            );
+          } else if ("href" in item) {
+            return (
+              <li class="nav-item">
+                <a
+                  href={item.href}
+                  class:list={["nav-link", { active: isActive }]}
+                  data-nav-item
+                >
+                  <span class="nav-icon">{item.icon}</span>
+                  <span class="nav-text">{item.name}</span>
+                </a>
+              </li>
+            );
+          }
+
+          return null;
+        })
+      }
     </ul>
   </nav>
 </aside>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Manejar clic en botones de submenú
+    document.querySelectorAll(".submenu-toggle").forEach((button) => {
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const parentLi = this.closest(".has-submenu");
+        const submenuId = this.getAttribute("data-submenu");
+        const submenu = document.getElementById(submenuId);
+
+        // Cerrar otros submenús abiertos
+        document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
+          if (openLi !== parentLi) {
+            openLi.classList.remove("open");
+            const otherSubmenu = openLi.querySelector(".submenu");
+            if (otherSubmenu) {
+              otherSubmenu.style.maxHeight = "0";
+            }
+          }
+        });
+
+        // Alternar el submenú actual
+        const isOpening = !parentLi.classList.contains("open");
+        parentLi.classList.toggle("open");
+
+        if (isOpening) {
+          submenu.style.maxHeight = submenu.scrollHeight + "px";
+        } else {
+          submenu.style.maxHeight = "0";
+        }
+      });
+    });
+
+    // Manejar clic en enlaces de navegación
+    document.querySelectorAll("[data-nav-item]").forEach((link) => {
+      link.addEventListener("click", function (e) {
+        // No cerrar el submenú al hacer clic en un subitem
+        e.stopPropagation();
+
+        // Actualizar estado activo visualmente
+        document.querySelectorAll("[data-nav-item]").forEach((item) => {
+          item.classList.remove("active");
+        });
+        this.classList.add("active");
+
+        // Marcar el padre como activo si es un subitem
+        const submenuItem = this.closest(".submenu-item");
+        if (submenuItem) {
+          const parentLi = submenuItem.closest(".has-submenu");
+          if (parentLi) {
+            parentLi.classList.add("open");
+            const submenu = parentLi.querySelector(".submenu");
+            if (submenu) {
+              submenu.style.maxHeight = submenu.scrollHeight + "px";
+            }
+          }
+        }
+      });
+    });
+
+    // Cerrar submenús al hacer clic fuera del sidebar
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".sidebar")) {
+        document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
+          openLi.classList.remove("open");
+          const submenu = openLi.querySelector(".submenu");
+          if (submenu) {
+            submenu.style.maxHeight = "0";
+          }
+        });
+      }
+    });
+
+    // Inicializar submenús abiertos si corresponden a la página actual
+    document.querySelectorAll(".has-submenu").forEach((item) => {
+      const activeSubItem = item.querySelector(".submenu-link.active");
+      if (activeSubItem) {
+        item.classList.add("open");
+        const submenu = item.querySelector(".submenu");
+        if (submenu) {
+          submenu.style.maxHeight = submenu.scrollHeight + "px";
+        }
+      }
+    });
+  });
+</script>

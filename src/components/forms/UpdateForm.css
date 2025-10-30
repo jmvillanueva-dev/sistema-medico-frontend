@@ -15,7 +15,7 @@
     color: var(--color-dark);
 }
 
-.form-group input {
+.form-group input, .form-group textarea {
     padding: 0.7rem;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -23,7 +23,7 @@
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-group textarea:focus  {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(25, 94, 230, 0.2);
     outline: none;

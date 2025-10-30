@@ -41,7 +41,7 @@
 :root {
   /* Paleta de Colores */
   --color-dark: #171818;
-  --color-gray: #f0f0f0;
+  --color-gray: #ebe5e5;
   --color-primary: #195ee6;
   --color-secondary: #29cce5;
   --color-red: #CD2C58;
@@ -107,7 +107,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.8rem;
   text-decoration: none;
   text-align: center;
   border: none;
@@ -180,10 +180,25 @@ a {
   background-color: #e4e4e4;
 }
 
+.close-button {
+  padding: 0.3rem 0.5rem;
+  color: var(--color-primary);
+  background-color: transparent;
+  border-bottom: 1px solid var(--color-gray);
+  transition: transform 0.3s;
+}
+
+.close-button:hover {
+  background-color: #cf67825e;
+  border-radius: 5px;
+}
+
+
 .btn-primary:hover .icon-scale,
 .btn-secondary:hover .icon-scale,
 .btn-blue-system:hover .icon-scale,
-.btn-danger:hover .icon-scale {
+.btn-danger:hover .icon-scale,
+.close-button:hover .icon-scale{
   transform: scale(1.1);
 }
 

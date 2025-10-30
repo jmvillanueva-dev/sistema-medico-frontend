@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
+
 import LogoutIcon from "@/icons/logout.svg";
 import ArrowUpIcon from "@/icons/arrow-up.svg";
 import ArrowDownIcon from "@/icons/arrow-down.svg";
 import UserIcon from "@/icons/user-card.svg";
 import ChangeModuleIcon from "@/icons/switch.svg";
-import ProfileIcon from "@/icons/user.svg";
+import ProfileIcon from "@/icons/system/profile.svg";
 
 interface UserDropdownProps {
   roles?: string[];
