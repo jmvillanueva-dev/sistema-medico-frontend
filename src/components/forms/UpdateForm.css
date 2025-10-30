@@ -1,108 +1,167 @@
 .update-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.form-section {
+  background: var(--color-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid var(--color-gray);
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 .form-group label {
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--color-dark);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-dark);
+  font-size: 0.9rem;
 }
 
-.form-group input, .form-group textarea {
-    padding: 0.7rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
+.form-group input,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid var(--color-gray);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background-color: var(--color-gray);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-group input:focus, .form-group textarea:focus  {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(25, 94, 230, 0.2);
-    outline: none;
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(25, 94, 230, 0.15);
+  outline: none;
 }
 
 .form-group input:disabled {
-    background-color: #f4f4f4;
-    cursor: not-allowed;
+  background-color: var(--color-gray);
+  color: var(--color-dark);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .error-message {
-    color: #ef4444;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
+  color: var(--color-red);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
 }
 
-.update-form button {
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-gray);
+}
+
+.submit-button {
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: var(--color-primary);
+  color: var(--color-light);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  min-width: 160px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #1a52b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(25, 94, 230, 0.3);
+}
+
+.submit-button:disabled {
+  background-color: var(--color-gray);
+  color: var(--color-dark);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .update-form {
+    gap: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    border-radius: 6px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .submit-button {
     width: 100%;
-    max-width: 200px;
-    margin-top: 0.5rem;
-    padding: 0.8rem;
-    font-weight: 700;
-    align-self: flex-end;
-    border-radius: 8px;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    min-width: auto;
+  }
 }
 
-.update-form button:hover {
-    background-color: #1a52b9;
+@media (max-width: 480px) {
+  .update-form {
+    gap: 1rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    border: 1px solid var(--color-gray);
+    background: var(--color-light);
+  }
+
+  .form-section-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group input {
+    padding: 0.875rem;
+  }
 }
 
-.update-form button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-
-/* Estilos para el grupo de checkboxes de roles */
-.form-row {
-  display: flex;
-  gap: 1rem;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.roles-checkbox-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-medium);
-  margin-top: 0.5rem;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.checkbox-item input[type="checkbox"] {
-  width: 1.15em;
-  height: 1.15em;
-}
-
-.checkbox-item label {
-  font-weight: 400;
-}
-
-.form-note {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    text-align: center;
-    margin-top: 1rem;
+/* Mejoras de accesibilidad */
+.form-group input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

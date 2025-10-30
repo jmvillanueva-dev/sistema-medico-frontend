@@ -1,5 +1,3 @@
-// src/components/LoginForm.tsx
-
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
@@ -132,7 +130,7 @@ const LoginForm: React.FC = () => {
           id="email"
           type="email"
           {...register("email")}
-          className={`form-input ${errors.email ? "input-error" : ""}`}
+          className={`form-input ${errors.email ? "input-error" : ""} mb-1`}
           disabled={isFormDisabled}
         />
         {errors.email && (

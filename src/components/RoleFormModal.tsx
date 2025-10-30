@@ -104,6 +104,7 @@ export default function RoleFormModal({ isOpen, onClose, onSave, role }: Props) 
           </div>
           <button
             type="submit"
+            className="submit-button"
             disabled={isSubmitting || (isEditing && !isDirty)}
           >
             {isSubmitting ? "Guardando..." : "Guardar"}

@@ -68,16 +68,29 @@ const EmployeeEmailForm: React.FC<Props> = ({ employeeId, currentEmail, onSave }
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
         <div className="form-group">
           <label htmlFor="current-email">Correo Actual</label>
-          <input id="current-email" type="email" value={currentEmail} disabled />
+          <input
+            id="current-email"
+            type="email"
+            value={currentEmail}
+            disabled
+          />
         </div>
         <div className="form-group">
           <label htmlFor="nuevoEmail">Nuevo Correo Electrónico</label>
           <input id="nuevoEmail" type="email" {...register("nuevoEmail")} />
-          {errors.nuevoEmail && <p className="error-message">{errors.nuevoEmail.message}</p>}
+          {errors.nuevoEmail && (
+            <p className="error-message">{errors.nuevoEmail.message}</p>
+          )}
         </div>
-        <button type="submit" disabled={isSubmitting || !isDirty}>
-          {isSubmitting ? "Actualizando..." : "Actualizar Correo"}
-        </button>
+        <div>
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={isSubmitting || !isDirty}
+          >
+            {isSubmitting ? "Actualizando..." : "Actualizar Correo"}
+          </button>
+        </div>
       </form>
     </>
   );

@@ -26,7 +26,7 @@ const NotificationToast: React.FC<NotificationProps> = ({
       // Configura un temporizador para ocultar el toast automáticamente después de 4 segundos
       const timer = setTimeout(() => {
         onClose();
-      }, 4000);
+      }, 6000);
 
       return () => clearTimeout(timer); // Limpieza del temporizador
     }

@@ -13,7 +13,10 @@ import "./UpdateForm.css";
 const createEmployeeSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
   apellido: z.string().min(1, "El apellido es requerido"),
-  cedula: z.string().min(10, "La cédula debe tener 10 dígitos").max(10, "La cédula debe tener 10 dígitos"),
+  cedula: z
+    .string()
+    .min(10, "La cédula debe tener 10 dígitos")
+    .max(10, "La cédula debe tener 10 dígitos"),
   especialidad: z.string().min(1, "La especialidad es requerida"),
   telefono: z.string().min(10, "El teléfono debe tener 10 dígitos"),
   codigoProfesional: z.string().optional(),
@@ -22,7 +25,10 @@ const createEmployeeSchema = z.object({
 });
 
 // Esquema para actualización (sin email y roles)
-const updateProfileSchema = createEmployeeSchema.omit({ email: true, roles: true });
+const updateProfileSchema = createEmployeeSchema.omit({
+  email: true,
+  roles: true,
+});
 
 interface Role {
   id: string;
@@ -36,7 +42,10 @@ interface Props {
 
 const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
   const isEditing = employee !== null;
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error"; } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
@@ -44,15 +53,16 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
     register,
     handleSubmit,
     reset,
-    control, // Importar control para useController
+    control,
     formState: { errors, isDirty },
   } = useForm({
-    resolver: zodResolver(isEditing ? updateProfileSchema : createEmployeeSchema),
-    defaultValues: { roles: [] }, // Inicializar roles como array vacío
+    resolver: zodResolver(
+      isEditing ? updateProfileSchema : createEmployeeSchema
+    ),
+    defaultValues: { roles: [] },
   });
 
-  // Hook para el campo de roles
-  const { field: rolesField } = useController({ name: 'roles', control });
+  const { field: rolesField } = useController({ name: "roles", control });
 
   useEffect(() => {
     if (!isEditing) {
@@ -72,7 +82,16 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
     if (isEditing && employee) {
       reset(employee);
     } else {
-      reset({ nombre: "", apellido: "", cedula: "", especialidad: "", telefono: "", codigoProfesional: "", email: "", roles: [] });
+      reset({
+        nombre: "",
+        apellido: "",
+        cedula: "",
+        especialidad: "",
+        telefono: "",
+        codigoProfesional: "",
+        email: "",
+        roles: [],
+      });
     }
   }, [employee, isEditing, reset]);
 
@@ -90,19 +109,28 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
         });
 
         if (Object.keys(changedData).length === 0) {
-          setNotification({ message: "No hay cambios para guardar.", type: "error" });
+          setNotification({
+            message: "No hay cambios para guardar.",
+            type: "error",
+          });
           setIsSubmitting(false);
           return;
         }
         await updateEmployee(employee.id, changedData);
-        setNotification({ message: "Empleado actualizado con éxito.", type: "success" });
+        setNotification({
+          message: "Empleado actualizado con éxito.",
+          type: "success",
+        });
       } else {
         await registerEmployee(data);
-        setNotification({ message: "Empleado creado con éxito. Se han enviado las credenciales por correo.", type: "success" });
+        setNotification({
+          message:
+            "Empleado creado con éxito. Se han enviado las credenciales por correo.",
+          type: "success",
+        });
       }
 
       setTimeout(() => onSave(), 1500);
-
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Ocurrió un error.";
       setNotification({ message: errorMsg, type: "error" });
@@ -112,69 +140,140 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
 
   return (
     <>
-      {notification && <NotificationToast isVisible message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
-      <form onSubmit={handleSubmit(onSubmit)} className="update-form">
-        {/* ... otros campos del formulario ... */}
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="nombre">Nombre</label>
-            <input id="nombre" type="text" {...register("nombre")} />
-            {errors.nombre && <p className="error-message">{errors.nombre.message as string}</p>}
-          </div>
-          <div className="form-group">
-            <label htmlFor="apellido">Apellido</label>
-            <input id="apellido" type="text" {...register("apellido")} />
-            {errors.apellido && <p className="error-message">{errors.apellido.message as string}</p>}
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="cedula">Cédula</label>
-          <input id="cedula" type="text" {...register("cedula")} disabled={isEditing} />
-          {errors.cedula && <p className="error-message">{errors.cedula.message as string}</p>}
-        </div>
+      {notification && (
+        <NotificationToast
+          isVisible
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
 
-        {!isEditing && (
+      <form onSubmit={handleSubmit(onSubmit)} className="update-form">
+        <div className="form-section">
+          <h3 className="form-section-title">Información Personal</h3>
+          <div className="form-grid">
             <div className="form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input id="nombre" type="text" {...register("nombre")} />
+              {errors.nombre && (
+                <p className="error-message">
+                  {errors.nombre.message as string}
+                </p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="apellido">Apellido</label>
+              <input id="apellido" type="text" {...register("apellido")} />
+              {errors.apellido && (
+                <p className="error-message">
+                  {errors.apellido.message as string}
+                </p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cedula">Cédula</label>
+              <input
+                id="cedula"
+                type="text"
+                {...register("cedula")}
+                disabled={isEditing}
+              />
+              {errors.cedula && (
+                <p className="error-message">
+                  {errors.cedula.message as string}
+                </p>
+              )}
+            </div>
+
+            {!isEditing && (
+              <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input id="email" type="email" {...register("email")} />
-                {errors.email && <p className="error-message">{errors.email.message as string}</p>}
-            </div>
-        )}
-
-        <div className="form-row">
-            <div className="form-group">
-                <label htmlFor="especialidad">Especialidad</label>
-                <input id="especialidad" type="text" {...register("especialidad")} />
-                {errors.especialidad && <p className="error-message">{errors.especialidad.message as string}</p>}
-            </div>
-            <div className="form-group">
-                <label htmlFor="telefono">Teléfono</label>
-                <input id="telefono" type="text" {...register("telefono")} />
-                {errors.telefono && <p className="error-message">{errors.telefono.message as string}</p>}
-            </div>
+                {errors.email && (
+                  <p className="error-message">
+                    {errors.email.message as string}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="codigoProfesional">Código Profesional (Opcional)</label>
-          <input id="codigoProfesional" type="text" {...register("codigoProfesional")} />
+        <div className="form-section">
+          <h3 className="form-section-title">Información Profesional</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="especialidad">Especialidad</label>
+              <input
+                id="especialidad"
+                type="text"
+                {...register("especialidad")}
+              />
+              {errors.especialidad && (
+                <p className="error-message">
+                  {errors.especialidad.message as string}
+                </p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="telefono">Teléfono</label>
+              <input id="telefono" type="text" {...register("telefono")} />
+              {errors.telefono && (
+                <p className="error-message">
+                  {errors.telefono.message as string}
+                </p>
+              )}
+            </div>
+
+            <div className="form-group full-width">
+              <label htmlFor="codigoProfesional">
+                Código Profesional (Opcional)
+              </label>
+              <input
+                id="codigoProfesional"
+                type="text"
+                {...register("codigoProfesional")}
+              />
+            </div>
+          </div>
         </div>
 
         {!isEditing && (
-          <div className="form-group">
-            <label>Roles</label>
-            <RoleSelector
-              availableRoles={availableRoles}
-              selectedRoles={rolesField.value}
-              onChange={rolesField.onChange}
-            />
-            {errors.roles && <p className="error-message">{errors.roles.message as string}</p>}
+          <div className="form-section">
+            <h3 className="form-section-title">Asignación de Roles</h3>
+            <div className="form-group">
+              <label>Roles</label>
+              <RoleSelector
+                availableRoles={availableRoles}
+                selectedRoles={rolesField.value}
+                onChange={rolesField.onChange}
+              />
+              {errors.roles && (
+                <p className="error-message">
+                  {errors.roles.message as string}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
-        <button type="submit" disabled={isSubmitting || (isEditing && !isDirty)}>
-          {isSubmitting ? "Guardando..." : "Guardar Cambios"}
-        </button>
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={isSubmitting || (isEditing && !isDirty)}
+            className="submit-button"
+          >
+            {isSubmitting
+              ? "Guardando..."
+              : isEditing
+                ? "Actualizar Empleado"
+                : "Crear Empleado"}
+          </button>
+        </div>
       </form>
     </>
   );
