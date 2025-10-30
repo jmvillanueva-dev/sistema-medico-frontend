@@ -4,6 +4,10 @@ import { getEmployees, deleteEmployee, getEmployeeById } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
 import EmployeeFormModal from "./EmployeeFormModal";
 
+import EditIcon from "@/icons/system/edit.svg";
+import DeleteIcon from "@/icons/system/delete.svg";
+
+
 // Interfaz extendida para incluir el email opcional
 export interface Employee {
   id: string;
@@ -123,21 +127,34 @@ export default function EmployeesManager() {
                   <td>
                     <span
                       className={`status-badge ${
-                        employee.estaActivo ? "active" : "inactive"
-                      }`}>
-                      {employee.estaActivo ? "Activo" : "Inactivo"}
+                        employee.estaActivo ? "✅ Activo" : "inactive"
+                      }`}
+                    >
+                      {employee.estaActivo ? "✅" : "Inactivo"}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons">
                       <button
-                        className="btn btn-secondary"
-                        onClick={() => handleEdit(employee)}>
+                        className="btn btn-blue-system"
+                        onClick={() => handleEdit(employee)}
+                      >
+                        <img
+                          src={EditIcon.src}
+                          alt="Icon Editar"
+                          className="icon icon-scale"
+                        />
                         Editar
                       </button>
                       <button
                         className="btn btn-danger"
-                        onClick={() => handleDelete(employee)}>
+                        onClick={() => handleDelete(employee)}
+                      >
+                        <img
+                          src={DeleteIcon.src}
+                          alt="Icon Eliminar"
+                          className="icon icon-scale"
+                        />
                         Eliminar
                       </button>
                     </div>

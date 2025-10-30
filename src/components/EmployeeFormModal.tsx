@@ -34,7 +34,7 @@ export default function EmployeeFormModal({ isOpen, onClose, onSave, employee }:
   return (
     <div className="modal-overlay">
       <div className="modal-content form-modal">
-        <button onClick={handleClose} className="btn close-button">&times;</button>
+        <button onClick={handleClose} className="btn close-button">&times; Cerrar</button>
         <div className="form-modal-header">
           <h2>{title}</h2>
         </div>
