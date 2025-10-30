@@ -1,13 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateProfileSchema } from "@/lib/validation/profile";
-import type { UpdateProfileFormData } from "@/lib/validation/profile";
-import { createEmployee, updateEmployee } from "@/services/api";
+import { z } from "zod";
+import { registerEmployee, updateEmployee, getRoles } from "@/services/api";
 import type { Employee } from "../EmployeesManager";
 import NotificationToast from "@/components/common/NotificationToast.tsx";
 
 import "./UpdateForm.css";
+
+// Esquema extendido para la creación
+const createEmployeeSchema = z.object({
+  nombre: z.string().min(1, "El nombre es requerido"),
+  apellido: z.string().min(1, "El apellido es requerido"),
+  cedula: z.string().min(10, "La cédula debe tener 10 dígitos").max(10, "La cédula debe tener 10 dígitos"),
+  especialidad: z.string().min(1, "La especialidad es requerida"),
+  telefono: z.string().min(10, "El teléfono debe tener 10 dígitos"),
+  codigoProfesional: z.string().optional(),
+  email: z.string().email("El correo no es válido"),
+  roles: z.array(z.string()).min(1, "Debe seleccionar al menos un rol"),
+});
+
+// Esquema para actualización (sin email y roles)
+const updateProfileSchema = createEmployeeSchema.omit({ email: true, roles: true });
+
+
+interface Role {
+  id: string;
+  nombre: string;
+}
 
 interface Props {
   employee: Employee | null;
@@ -16,54 +36,52 @@ interface Props {
 
 const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
   const isEditing = employee !== null;
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: "success" | "error"; } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<UpdateProfileFormData>({
-    resolver: zodResolver(updateProfileSchema),
+  } = useForm({
+    resolver: zodResolver(isEditing ? updateProfileSchema : createEmployeeSchema),
   });
 
   useEffect(() => {
-    if (isEditing) {
-      reset({
-        nombre: employee.nombre || "",
-        apellido: employee.apellido || "",
-        cedula: employee.cedula || "",
-        especialidad: employee.especialidad || "",
-        telefono: employee.telefono || "",
-        codigoProfesional: employee.codigoProfesional || "",
-      });
+    // Cargar roles solo en modo creación
+    if (!isEditing) {
+      const fetchRoles = async () => {
+        try {
+          const response = await getRoles();
+          setAvailableRoles(response.data);
+        } catch (error) {
+          console.error("Error al cargar roles", error);
+        }
+      };
+      fetchRoles();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (isEditing && employee) {
+      reset(employee);
     } else {
-      reset({
-        nombre: "",
-        apellido: "",
-        cedula: "",
-        especialidad: "",
-        telefono: "",
-        codigoProfesional: "",
-      });
+      reset({ nombre: "", apellido: "", cedula: "", especialidad: "", telefono: "", codigoProfesional: "", email: "", roles: [] });
     }
   }, [employee, isEditing, reset]);
 
-  const onSubmit = async (data: UpdateProfileFormData) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     setNotification(null);
 
     try {
       if (isEditing) {
-        // Lógica de Actualización
-        const changedData: Partial<UpdateProfileFormData> = {};
-        (Object.keys(data) as Array<keyof UpdateProfileFormData>).forEach((key) => {
-          if (data[key] !== employee[key]) {
-            changedData[key] = data[key];
+        const changedData: Partial<any> = {};
+        Object.keys(data).forEach((key) => {
+          if (data[key] !== employee?.[key as keyof Employee]) {
+            changedData[key as keyof Employee] = data[key];
           }
         });
 
@@ -75,75 +93,81 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
         await updateEmployee(employee.id, changedData);
         setNotification({ message: "Empleado actualizado con éxito.", type: "success" });
       } else {
-        // Lógica de Creación
-        // Aquí deberías incluir también campos como email y password si son necesarios para la creación
-        await createEmployee(data);
-        setNotification({ message: "Empleado creado con éxito.", type: "success" });
+        await registerEmployee(data);
+        setNotification({ message: "Empleado creado con éxito. Se han enviado las credenciales por correo.", type: "success" });
       }
 
-      // Espera un momento para que el usuario vea la notificación y luego llama a onSave
-      setTimeout(() => {
-        onSave();
-      }, 1000);
+      setTimeout(() => onSave(), 1500);
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Ocurrió un error.";
       setNotification({ message: errorMsg, type: "error" });
-    } finally {
-      if (!isEditing) {
-         // Solo si no estamos editando, para que el usuario vea el mensaje de éxito
-      } else {
-        setIsSubmitting(false);
-      }
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
-      {notification && (
-        <NotificationToast
-          isVisible
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
+      {notification && <NotificationToast isVisible message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
-        {/* Campos del formulario */}
-        <div className="form-group">
-          <label htmlFor="nombre">Nombre</label>
-          <input id="nombre" type="text" {...register("nombre")} />
-          {errors.nombre && <p className="error-message">{errors.nombre.message}</p>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="apellido">Apellido</label>
-          <input id="apellido" type="text" {...register("apellido")} />
-          {errors.apellido && <p className="error-message">{errors.apellido.message}</p>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="cedula">Cédula</label>
-          <input id="cedula" type="text" defaultValue={employee?.cedula}  {...register("cedula")} />
-          {errors.cedula && <p className="error-message">{errors.cedula.message}</p>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="especialidad">Especialidad</label>
-          <input id="especialidad" type="text" {...register("especialidad")} />
-          {errors.especialidad && <p className="error-message">{errors.especialidad.message}</p>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="telefono">Teléfono</label>
-          <input id="telefono" type="text" {...register("telefono")} />
-          {errors.telefono && <p className="error-message">{errors.telefono.message}</p>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="codigoProfesional">Código Profesional</label>
-          <input id="codigoProfesional" type="text" {...register("codigoProfesional")} />
-          {errors.codigoProfesional && <p className="error-message">{errors.codigoProfesional.message}</p>}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="nombre">Nombre</label>
+            <input id="nombre" type="text" {...register("nombre")} />
+            {errors.nombre && <p className="error-message">{errors.nombre.message as string}</p>}
+          </div>
+          <div className="form-group">
+            <label htmlFor="apellido">Apellido</label>
+            <input id="apellido" type="text" {...register("apellido")} />
+            {errors.apellido && <p className="error-message">{errors.apellido.message as string}</p>}
+          </div>
         </div>
         
-        {/* En modo creación, podríamos necesitar campos de email/contraseña */}
+        <div className="form-group">
+          <label htmlFor="cedula">Cédula</label>
+          <input id="cedula" type="text" {...register("cedula")} disabled={isEditing} />
+          {errors.cedula && <p className="error-message">{errors.cedula.message as string}</p>}
+        </div>
+
         {!isEditing && (
-            <p className="form-note">La contraseña y el email se gestionarán en los siguientes pasos.</p>
+            <div className="form-group">
+                <label htmlFor="email">Email</label>
+                <input id="email" type="email" {...register("email")} />
+                {errors.email && <p className="error-message">{errors.email.message as string}</p>}
+            </div>
+        )}
+
+        <div className="form-row">
+            <div className="form-group">
+                <label htmlFor="especialidad">Especialidad</label>
+                <input id="especialidad" type="text" {...register("especialidad")} />
+                {errors.especialidad && <p className="error-message">{errors.especialidad.message as string}</p>}
+            </div>
+            <div className="form-group">
+                <label htmlFor="telefono">Teléfono</label>
+                <input id="telefono" type="text" {...register("telefono")} />
+                {errors.telefono && <p className="error-message">{errors.telefono.message as string}</p>}
+            </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="codigoProfesional">Código Profesional (Opcional)</label>
+          <input id="codigoProfesional" type="text" {...register("codigoProfesional")} />
+        </div>
+
+        {!isEditing && (
+          <div className="form-group">
+            <label>Roles</label>
+            <div className="roles-checkbox-group">
+              {availableRoles.map((role) => (
+                <div key={role.id} className="checkbox-item">
+                  <input type="checkbox" id={role.id} value={role.nombre} {...register("roles")} />
+                  <label htmlFor={role.id}>{role.nombre}</label>
+                </div>
+              ))}
+            </div>
+            {errors.roles && <p className="error-message">{errors.roles.message as string}</p>}
+          </div>
         )}
 
         <button type="submit" disabled={isSubmitting || (isEditing && !isDirty)}>

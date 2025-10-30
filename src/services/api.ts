@@ -55,8 +55,8 @@ export const deleteEmployee = (employeeId: string) => {
   return api.delete(`/empleados/${employeeId}`);
 };
 
-export const createEmployee = (data: object) => {
-  return api.post("/empleados", data);
+export const registerEmployee = (data: object) => {
+  return api.post("/auth/register", data);
 };
 
 export const updateEmployeePassword = (employeeId: string, data: object) => {
@@ -65,6 +65,23 @@ export const updateEmployeePassword = (employeeId: string, data: object) => {
 
 export const updateMyPassword = (data: object) => {
   return api.put("/empleados/me/password", data);
+};
+
+// Funciones para Roles
+export const getRoles = () => {
+  return api.get("/roles");
+};
+
+export const createRole = (data: object) => {
+  return api.post("/roles", data);
+};
+
+export const updateRole = (roleId: string, data: object) => {
+  return api.put(`/roles/${roleId}`, data);
+};
+
+export const deleteRole = (roleId: string) => {
+  return api.delete(`/roles/${roleId}`);
 };
 
 export default api;

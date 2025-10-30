@@ -63,3 +63,46 @@
     background-color: #ccc;
     cursor: not-allowed;
 }
+
+
+/* Estilos para el grupo de checkboxes de roles */
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.roles-checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-medium);
+  margin-top: 0.5rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.checkbox-item label {
+  font-weight: 400;
+}
+
+.form-note {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-top: 1rem;
+}
