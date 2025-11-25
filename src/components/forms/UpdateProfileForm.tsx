@@ -8,7 +8,7 @@ import { useUserProfileStore } from "@/store/userProfileStore";
 import { updateEmployee } from "@/services/api";
 import NotificationToast from "@/components/common/NotificationToast.tsx";
 
-import "./UpdateForm.css"; // Usaremos un CSS compartido
+import "./UpdateForm.css";
 
 const UpdateProfileForm: React.FC = () => {
   const { user, initializeAuth } = useAuthStore((state) => state);
@@ -39,7 +39,6 @@ const UpdateProfileForm: React.FC = () => {
 
   useEffect(() => {
     const initAndFetch = async () => {
-      // It's a sync function, but let's be safe
       await Promise.resolve(initializeAuth());
       const currentUser = useAuthStore.getState().user;
       if (currentUser?.employeeId) {
@@ -47,8 +46,7 @@ const UpdateProfileForm: React.FC = () => {
       }
     };
     initAndFetch();
-  }, [initializeAuth, fetchEmployeeData]); // Run once on mount
-
+  }, [initializeAuth, fetchEmployeeData]);
   useEffect(() => {
     if (employeeData) {
       reset({
