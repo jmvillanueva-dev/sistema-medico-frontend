@@ -5,10 +5,11 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/authStore";
 import { getDashboardPath } from "@/utils/navigation";
-// Importar las funciones de utilidad de bloqueo
 import { getLockoutStatus, clearLockout } from "@/utils/lockout";
+import "@/styles/Login.css";
 
-// 1. Definir el esquema de validación con Zod
+
+// Esquema de validacion
 const loginSchema = z.object({
   email: z
     .string()
@@ -17,20 +18,19 @@ const loginSchema = z.object({
   password: z.string().min(1, "La contraseña no puede estar vacía."),
 });
 
-// 2. Definir el tipo basado en el esquema
 type LoginFormInputs = z.infer<typeof loginSchema>;
+
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
 
-  // 3. Obtener SOLO el estado reactivo necesario con un selector estable
   const login = useAuthStore((state) => state.login);
   const globalError = useAuthStore((state) => state.error);
   const loading = useAuthStore((state) => state.loading);
 
-  // 4. Configurar react-hook-form
+  // Configuración de react-hook-form
   const {
     register,
     handleSubmit,
@@ -40,23 +40,16 @@ const LoginForm: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  // 5. Lógica de inicialización - SOLO en cliente
+  // Lógica de inicialización - SOLO en cliente
   useEffect(() => {
-    // Verificar que estamos en el cliente
     if (typeof window === "undefined") return;
 
     const initialize = () => {
       try {
-        // Obtener las funciones directamente del store sin suscribirse
         const { initializeAuth } = useAuthStore.getState();
-
-        // Inicializar autenticación
         initializeAuth();
-
-        // Limpiar bloqueos expirados
         clearLockout();
 
-        // Verificar estado de bloqueo
         const { isLocked, remainingTime } = getLockoutStatus();
         if (isLocked) {
           setLockoutMessage(
@@ -69,29 +62,24 @@ const LoginForm: React.FC = () => {
         setIsInitialized(true);
       } catch (error) {
         console.error("Error initializing login form:", error);
-        setIsInitialized(true); // Asegurar que se muestre el formulario incluso con error
+        setIsInitialized(true);
       }
     };
 
-    // Usar setTimeout en lugar de requestAnimationFrame para mayor compatibilidad
     const timer = setTimeout(initialize, 0);
-
     return () => clearTimeout(timer);
-  }, []); // Dependencias vacías cruciales
+  }, []);
 
-  // 6. Manejador de envío
+
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setLockoutMessage(null);
 
     try {
       await login(data);
-
-      // Si login() tiene éxito, obtener roles y redirigir
       const userRoles = useAuthStore.getState().user?.roles || [];
       const path = getDashboardPath(userRoles);
-      window.location.href = path; // Redirección
+      window.location.href = path;
     } catch (err: any) {
-      // Manejo de errores de react-hook-form
       if (typeof err === "object" && err !== null && !err.message) {
         if (err.email) {
           setError("email", { type: "manual", message: err.email });
@@ -100,28 +88,26 @@ const LoginForm: React.FC = () => {
           setError("password", { type: "manual", message: err.password });
         }
       }
-      // El error global ya fue seteado en la store por la función login()
     }
   };
 
   const isFormDisabled = loading || lockoutMessage !== null || !isInitialized;
 
-  // Mostrar un estado de carga mientras se inicializa
-  // if (!isInitialized) {
-  //   return (
-  //     <div className="login-form p-6 text-center text-gray-500">
-  //       Cargando formulario...
-  //     </div>
-  //   );
-  // }
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="login-form">
       {/* Mostrar error global de la store o el mensaje de bloqueo */}
       {lockoutMessage ? (
-        <div className="global-error">{lockoutMessage}</div>
+        <div className="global-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+          <span>{lockoutMessage}</span>
+        </div>
       ) : (
-        globalError && <div className="global-error">{globalError}</div>
+        globalError && (
+          <div className="global-error">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <span>{globalError}</span>
+          </div>
+        )
       )}
 
       <div className="form-group">
@@ -129,12 +115,16 @@ const LoginForm: React.FC = () => {
         <input
           id="email"
           type="email"
+          placeholder="nombre@ejemplo.com"
           {...register("email")}
-          className={`form-input ${errors.email ? "input-error" : ""} mb-1`}
+          className={`form-input ${errors.email ? "input-error" : ""}`}
           disabled={isFormDisabled}
         />
         {errors.email && (
-          <p className="error-message">{errors.email.message}</p>
+          <p className="error-message">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            {errors.email.message}
+          </p>
         )}
       </div>
 
@@ -144,6 +134,7 @@ const LoginForm: React.FC = () => {
           <input
             id="password"
             type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
             {...register("password")}
             className={`form-input ${errors.password ? "input-error" : ""}`}
             disabled={isFormDisabled}
@@ -151,29 +142,29 @@ const LoginForm: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: "absolute",
-              right: "10px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="password-toggle"
             disabled={isFormDisabled}
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
-            {showPassword ? "Ocultar" : "Mostrar"}
+            {showPassword ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            )}
           </button>
         </div>
         {errors.password && (
-          <p className="error-message">{errors.password.message}</p>
+          <p className="error-message">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            {errors.password.message}
+          </p>
         )}
       </div>
 
       <button
         type="submit"
         className="btn btn-primary btn-submit"
-        x={isFormDisabled}
+        disabled={isFormDisabled}
       >
         {loading ? "Ingresando..." : "Ingresar"}
       </button>

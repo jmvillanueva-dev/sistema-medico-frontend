@@ -6,23 +6,13 @@ import api from "@/services/api";
 import { getDashboardPath } from "@/utils/navigation";
 import {
   getLockoutStatus,
-  // NOTA: clearLockout no se usa aquí, pero sí se usan las constantes
   ATTEMPTS_KEY,
   LOCKOUT_KEY,
   MAX_LOGIN_ATTEMPTS,
   LOCKOUT_DURATION_MS,
 } from "@/utils/lockout";
+import type { User } from "@/types/user";
 
-// --- Tipos ---
-interface User {
-  email: string;
-  roles: string[];
-  employeeId: string;
-  name: string;
-  lastName: string;
-}
-
-// LockoutState ya no se define aquí
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -32,10 +22,7 @@ interface AuthState {
   login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   initializeAuth: () => void;
-  // getLockoutStatus y clearLockout eliminados del estado
 }
-
-// Las funciones getLockoutStatus y clearLockout se eliminaron de aquí
 
 // --- Store ---
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -64,15 +51,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // getLockoutStatus y clearLockout eliminados de aquí
-
   /**
    * Maneja el intento de inicio de sesión.
    */
   login: async (credentials) => {
     set({ loading: true, error: null });
 
-    // 1. Verificar bloqueo (ahora usa la función importada)
+    // 1. Verificar bloqueo
     const { isLocked, remainingTime } = getLockoutStatus();
     if (isLocked) {
       const errorMsg = `Demasiados intentos fallidos. Por favor, espere ${remainingTime} minutos.`;
@@ -83,8 +68,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       // 2. Llamada API
       const response = await api.post("/auth/login", credentials);
-      const { accessToken, email, roles, employeeId, name, lastName } =
-        response.data;
+
+      const { data: responseData } = response.data;
+      const { accessToken, refreshToken, email, roles, employeeId, name, lastName } = responseData;
 
       const user: User = { email, roles, employeeId, name, lastName };
 
@@ -95,9 +81,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } as const;
 
       Cookies.set("auth-token", accessToken, cookieOptions);
+      Cookies.set("auth-refresh-token", refreshToken, cookieOptions);
       Cookies.set("auth-user", JSON.stringify(user), cookieOptions);
 
-      // 4. Resetear intentos fallidos (usa constantes importadas)
+      // 4. Resetear intentos fallidos
       localStorage.removeItem(ATTEMPTS_KEY);
       localStorage.removeItem(LOCKOUT_KEY);
 
@@ -110,16 +97,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (err.response) {
         const data = err.response.data;
 
-        // Caso 1: Campos vacíos
-        if (typeof data === "object" && (data.email || data.password)) {
-          throw data; // Lanzar para que react-hook-form lo capture
-        }
+        // Verificamos si el mensaje indica credenciales incorrectas
+        const errorMessage = data.message || "Error en el servidor.";
 
-        // Caso 2: Credenciales incorrectas (usa constantes importadas)
-        if (
-          typeof data === "string" &&
-          data.includes("Credenciales incorrectas")
-        ) {
+        if (errorMessage.includes("Credenciales incorrectas")) {
           const attempts =
             parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0", 10) + 1;
 
@@ -136,16 +117,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           } else {
             // Guardar intento
             localStorage.setItem(ATTEMPTS_KEY, attempts.toString());
-            const errorMsg = `${data} (Intento ${attempts} de ${MAX_LOGIN_ATTEMPTS})`;
+            const errorMsg = `${errorMessage} (Intento ${attempts} de ${MAX_LOGIN_ATTEMPTS})`;
             set({ error: errorMsg });
             throw new Error(errorMsg);
           }
         }
 
         // Otro error de backend
-        const errorMsg = data.message || "Error en el servidor.";
-        set({ error: errorMsg });
-        throw new Error(errorMsg);
+        set({ error: errorMessage });
+        throw new Error(errorMessage);
       } else {
         // Error de red o Axios
         const errorMsg = "No se pudo conectar al servidor. Intente más tarde.";
@@ -160,9 +140,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    */
   logout: () => {
     Cookies.remove("auth-token");
+    Cookies.remove("auth-refresh-token");
     Cookies.remove("auth-user");
     set({ isAuthenticated: false, user: null });
-    // Redirigir al login
     window.location.href = "/login";
   },
 }));
