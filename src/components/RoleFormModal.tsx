@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createRole, updateRole } from "@/services/api";
 import type { Role } from "./RolesManager";
-import NotificationToast from "./common/NotificationToast";
+import { toast } from "react-toastify";
 import "./forms/UpdateForm.css";
 
 import CloseIcon from "@/icons/system/close.svg";
@@ -24,16 +24,25 @@ interface Props {
   role: Role | null;
 }
 
-export default function RoleFormModal({ isOpen, onClose, onSave, role }: Props) {
+export default function RoleFormModal({
+  isOpen,
+  onClose,
+  onSave,
+  role,
+}: Props) {
   if (!isOpen) return null;
 
   const isEditing = role !== null;
   const title = isEditing ? "Editar Rol" : "Crear Nuevo Rol";
 
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error"; } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<RoleFormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
   });
 
@@ -47,20 +56,19 @@ export default function RoleFormModal({ isOpen, onClose, onSave, role }: Props) 
 
   const onSubmit = async (data: RoleFormData) => {
     setIsSubmitting(true);
-    setNotification(null);
 
     try {
       if (isEditing) {
         await updateRole(role.id, data);
-        setNotification({ message: "Rol actualizado con éxito.", type: "success" });
+        toast.success("Rol actualizado con éxito.");
       } else {
         await createRole(data);
-        setNotification({ message: "Rol creado con éxito.", type: "success" });
+        toast.success("Rol creado con éxito.");
       }
       setTimeout(() => onSave(), 1000);
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Ocurrió un error.";
-      setNotification({ message: errorMsg, type: "error" });
+      toast.error(errorMsg);
       setIsSubmitting(false);
     }
   };
@@ -68,16 +76,12 @@ export default function RoleFormModal({ isOpen, onClose, onSave, role }: Props) 
   return (
     <div className="modal-overlay">
       <div className="modal-content form-modal">
-        {notification && (
-          <NotificationToast
-            isVisible
-            message={notification.message}
-            type={notification.type}
-            onClose={() => setNotification(null)}
-          />
-        )}
         <button onClick={onClose} className="btn close-button">
-          <img src={CloseIcon.src} alt="Icon Cerrar" className="icon icon-scale" />
+          <img
+            src={CloseIcon.src}
+            alt="Icon Cerrar"
+            className="icon icon-scale"
+          />
           Cancelar
         </button>
         <div className="form-modal-header">

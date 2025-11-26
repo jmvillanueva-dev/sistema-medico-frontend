@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { updateEmailSchema } from "@/lib/validation/profile";
 import type { UpdateEmailFormData } from "@/lib/validation/profile";
 import { updateEmployeeEmail } from "@/services/api";
-import NotificationToast from "@/components/common/NotificationToast.tsx";
+import { toast } from "react-toastify";
 
 import "./UpdateForm.css";
 
@@ -14,11 +14,11 @@ interface Props {
   onSave: () => void;
 }
 
-const EmployeeEmailForm: React.FC<Props> = ({ employeeId, currentEmail, onSave }) => {
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
+const EmployeeEmailForm: React.FC<Props> = ({
+  employeeId,
+  currentEmail,
+  onSave,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -32,24 +32,23 @@ const EmployeeEmailForm: React.FC<Props> = ({ employeeId, currentEmail, onSave }
 
   const onSubmit = async (data: UpdateEmailFormData) => {
     if (data.nuevoEmail === currentEmail) {
-      setNotification({ message: "El nuevo correo es igual al actual.", type: "error" });
+      toast.error("El nuevo correo es igual al actual.");
       return;
     }
 
     setIsSubmitting(true);
-    setNotification(null);
 
     try {
       await updateEmployeeEmail(employeeId, data);
-      setNotification({ message: "Correo actualizado con éxito.", type: "success" });
+      toast.success("Correo actualizado con éxito.");
 
       setTimeout(() => {
         onSave();
       }, 1000);
-
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Error al actualizar el correo.";
-      setNotification({ message: errorMsg, type: "error" });
+      const errorMsg =
+        error.response?.data?.message || "Error al actualizar el correo.";
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -57,14 +56,6 @@ const EmployeeEmailForm: React.FC<Props> = ({ employeeId, currentEmail, onSave }
 
   return (
     <>
-      {notification && (
-        <NotificationToast
-          isVisible
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
         <div className="form-group">
           <label htmlFor="current-email">Correo Actual</label>

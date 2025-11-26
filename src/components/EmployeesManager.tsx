@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { getEmployees, deleteEmployee, getEmployeeById } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
 import EmployeeFormModal from "./EmployeeFormModal";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import "./EmployeesManager.css";
 
 import EditIcon from "@/icons/system/edit.svg";
 import DeleteIcon from "@/icons/system/delete.svg";
-
 
 // Interfaz extendida para incluir el email opcional
 export interface Employee {
@@ -30,7 +31,9 @@ export default function EmployeesManager() {
 
   // Estados para modales
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
+    null
+  );
   const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
@@ -38,10 +41,13 @@ export default function EmployeesManager() {
     try {
       setLoading(true);
       const response = await getEmployees();
-      setEmployees(response.data);
+      setEmployees(response.data.data);
       setError(null);
     } catch (err) {
-      setError("Error al cargar los empleados. Por favor, intente más tarde.");
+      const errorMsg =
+        "Error al cargar los empleados. Por favor, intente más tarde.";
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     } finally {
       setLoading(false);
@@ -63,10 +69,12 @@ export default function EmployeesManager() {
     try {
       // Obtenemos los datos completos para tener el email
       const response = await getEmployeeById(employee.id);
-      setEditingEmployee(response.data); // Modo edición con datos completos
+      setEditingEmployee(response.data.data); // Modo edición con datos completos
       setFormModalOpen(true);
     } catch (err) {
-      setError("Error al obtener los datos del empleado.");
+      const errorMsg = "Error al obtener los datos del empleado.";
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     }
   };
@@ -81,10 +89,13 @@ export default function EmployeesManager() {
     try {
       await deleteEmployee(employeeToDelete.id);
       setEmployees(employees.filter((emp) => emp.id !== employeeToDelete.id));
+      toast.success("Empleado eliminado exitosamente");
       setDeleteModalOpen(false);
       setEmployeeToDelete(null);
     } catch (err) {
-      setError("Error al eliminar el empleado.");
+      const errorMsg = "Error al eliminar el empleado.";
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     }
   };
@@ -96,6 +107,7 @@ export default function EmployeesManager() {
 
   return (
     <div className="employees-manager">
+      <ToastContainer />
       <div className="toolbar">
         <h1>Gestión de Empleados</h1>
         <button className="btn btn-primary" onClick={handleCreate}>

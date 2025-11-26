@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import UpdateProfileForm from './forms/UpdateProfileForm';
-import UpdateEmailForm from './forms/UpdateEmailForm';
-import UpdatePasswordForm from './forms/UpdatePasswordForm';
-import './ProfileManager.css';
+import React, { useState } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import UpdateProfileForm from "./forms/UpdateProfileForm";
+import UpdateEmailForm from "./forms/UpdateEmailForm";
+import UpdatePasswordForm from "./forms/UpdatePasswordForm";
+import "./ProfileManager.css";
 
-type ActiveView = 'profile' | 'email' | 'password';
+type ActiveView = "profile" | "email" | "password";
 
 const ProfileManager: React.FC = () => {
-  const [activeView, setActiveView] = useState<ActiveView>('profile');
+  const [activeView, setActiveView] = useState<ActiveView>("profile");
 
   const renderContent = () => {
     switch (activeView) {
-      case 'profile':
+      case "profile":
         return <UpdateProfileForm />;
-      case 'email':
+      case "email":
         return <UpdateEmailForm />;
-      case 'password':
+      case "password":
         return <UpdatePasswordForm />;
       default:
         return <UpdateProfileForm />;
@@ -23,27 +25,26 @@ const ProfileManager: React.FC = () => {
   };
 
   const navLinks = [
-    { id: 'profile', label: 'Información General' },
-    { id: 'email', label: 'Correo Electrónico' },
-    { id: 'password', label: 'Contraseña' },
+    { id: "profile", label: "Información General" },
+    { id: "email", label: "Correo Electrónico" },
+    { id: "password", label: "Contraseña" },
   ];
 
   return (
     <div className="profile-manager">
+      <ToastContainer />
       <nav className="profile-nav">
-        {navLinks.map(link => (
+        {navLinks.map((link) => (
           <button
             key={link.id}
-            className={`nav-button ${activeView === link.id ? 'active' : ''}`}
+            className={`nav-button ${activeView === link.id ? "active" : ""}`}
             onClick={() => setActiveView(link.id as ActiveView)}
           >
             {link.label}
           </button>
         ))}
       </nav>
-      <div className="profile-content">
-        {renderContent()}
-      </div>
+      <div className="profile-content">{renderContent()}</div>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import type { UpdateProfileFormData } from "@/lib/validation/profile";
 import { useAuthStore } from "@/store/authStore";
 import { useUserProfileStore } from "@/store/userProfileStore";
 import { updateEmployee } from "@/services/api";
-import NotificationToast from "@/components/common/NotificationToast.tsx";
+import { toast } from "react-toastify";
 
 import "./UpdateForm.css";
 
@@ -15,10 +15,6 @@ const UpdateProfileForm: React.FC = () => {
   const { employeeData, fetchEmployeeData, setEmployeeData, loading } =
     useUserProfileStore((state) => state);
 
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -72,27 +68,20 @@ const UpdateProfileForm: React.FC = () => {
     });
 
     if (Object.keys(changedData).length === 0) {
-      setNotification({
-        message: "No hay cambios para guardar.",
-        type: "error",
-      });
+      toast.info("No hay cambios para guardar.");
       return;
     }
 
     setIsSubmitting(true);
-    setNotification(null);
 
     try {
       const response = await updateEmployee(user.employeeId, changedData);
-      setEmployeeData(response.data);
-      setNotification({
-        message: "Perfil actualizado con éxito.",
-        type: "success",
-      });
+      setEmployeeData(response.data.data);
+      toast.success("Perfil actualizado con éxito.");
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Error al actualizar el perfil.";
-      setNotification({ message: errorMsg, type: "error" });
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -108,19 +97,13 @@ const UpdateProfileForm: React.FC = () => {
 
   return (
     <>
-      {notification && (
-        <NotificationToast
-          isVisible
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
         <div className="form-group">
           <label htmlFor="nombre">Nombre</label>
           <input id="nombre" type="text" {...register("nombre")} />
-          {errors.nombre && <p className="error-message">{errors.nombre.message}</p>}
+          {errors.nombre && (
+            <p className="error-message">{errors.nombre.message}</p>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="apellido">Apellido</label>

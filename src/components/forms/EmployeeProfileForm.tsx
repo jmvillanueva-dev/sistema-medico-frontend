@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { registerEmployee, updateEmployee, getRoles } from "@/services/api";
 import type { Employee } from "../EmployeesManager";
-import NotificationToast from "@/components/common/NotificationToast.tsx";
+import { toast } from "react-toastify";
 import RoleSelector from "./RoleSelector";
 
 import "./UpdateForm.css";
@@ -42,10 +42,6 @@ interface Props {
 
 const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
   const isEditing = employee !== null;
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
@@ -55,7 +51,7 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
     reset,
     control,
     formState: { errors, isDirty },
-  } = useForm({
+  } = useForm<any>({
     resolver: zodResolver(
       isEditing ? updateProfileSchema : createEmployeeSchema
     ),
@@ -69,9 +65,10 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
       const fetchRoles = async () => {
         try {
           const response = await getRoles();
-          setAvailableRoles(response.data);
+          setAvailableRoles(response.data.data);
         } catch (error) {
           console.error("Error al cargar roles", error);
+          toast.error("Error al cargar los roles disponibles");
         }
       };
       fetchRoles();
@@ -97,7 +94,6 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
-    setNotification(null);
 
     try {
       if (isEditing) {
@@ -109,46 +105,29 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
         });
 
         if (Object.keys(changedData).length === 0) {
-          setNotification({
-            message: "No hay cambios para guardar.",
-            type: "error",
-          });
+          toast.info("No hay cambios para guardar.");
           setIsSubmitting(false);
           return;
         }
         await updateEmployee(employee.id, changedData);
-        setNotification({
-          message: "Empleado actualizado con éxito.",
-          type: "success",
-        });
+        toast.success("Empleado actualizado con éxito.");
       } else {
         await registerEmployee(data);
-        setNotification({
-          message:
-            "Empleado creado con éxito. Se han enviado las credenciales por correo.",
-          type: "success",
-        });
+        toast.success(
+          "Empleado creado con éxito. Se han enviado las credenciales por correo."
+        );
       }
 
       setTimeout(() => onSave(), 1500);
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Ocurrió un error.";
-      setNotification({ message: errorMsg, type: "error" });
+      toast.error(errorMsg);
       setIsSubmitting(false);
     }
   };
 
   return (
     <>
-      {notification && (
-        <NotificationToast
-          isVisible
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
-
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
         <div className="form-section">
           <h3 className="form-section-title">Información Personal</h3>

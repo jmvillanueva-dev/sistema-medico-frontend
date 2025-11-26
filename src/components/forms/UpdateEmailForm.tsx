@@ -1,23 +1,17 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  updateEmailSchema
-} from "@/lib/validation/profile";
+import { updateEmailSchema } from "@/lib/validation/profile";
 import type { UpdateEmailFormData } from "@/lib/validation/profile";
 import { useAuthStore } from "@/store/authStore";
 import { updateEmployeeEmail } from "@/services/api";
-import NotificationToast from "@/components/common/NotificationToast.tsx";
+import { toast } from "react-toastify";
 
 import "./UpdateForm.css";
 
 const UpdateEmailForm: React.FC = () => {
   const { user } = useAuthStore((state) => state);
 
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -33,29 +27,26 @@ const UpdateEmailForm: React.FC = () => {
     if (!user?.employeeId) return;
 
     if (data.nuevoEmail === user.email) {
-        setNotification({ message: "El nuevo correo es igual al actual.", type: "error" });
-        return;
+      toast.error("El nuevo correo es igual al actual.");
+      return;
     }
 
     setIsSubmitting(true);
-    setNotification(null);
 
     try {
       await updateEmployeeEmail(user.employeeId, data);
-      setNotification({
-        message: "Correo actualizado con éxito. La sesión se cerrará para que inicies sesión con tu nuevo correo.",
-        type: "success",
-      });
-      
+      toast.success(
+        "Correo actualizado con éxito. La sesión se cerrará para que inicies sesión con tu nuevo correo."
+      );
+
       // Logout after a delay to allow user to read the message
       setTimeout(() => {
         useAuthStore.getState().logout();
       }, 4000);
-
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Error al actualizar el correo.";
-      setNotification({ message: errorMsg, type: "error" });
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
       reset();
@@ -64,14 +55,6 @@ const UpdateEmailForm: React.FC = () => {
 
   return (
     <>
-      {notification && (
-        <NotificationToast
-          isVisible
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
       <form onSubmit={handleSubmit(onSubmit)} className="update-form">
         <div className="form-group">
           <label htmlFor="current-email">Correo Actual</label>

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { getRoles, deleteRole } from "../services/api";
 import RoleFormModal from "./RoleFormModal";
 import ConfirmationModal from "./ConfirmationModal";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./EmployeesManager.css";
 
 import EditIcon from "@/icons/system/edit.svg";
@@ -29,10 +31,12 @@ export default function RolesManager() {
     try {
       setLoading(true);
       const response = await getRoles();
-      setRoles(response.data);
+      setRoles(response.data.data);
       setError(null);
     } catch (err) {
-      setError("Error al cargar los roles.");
+      const errorMsg = "Error al cargar los roles.";
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     } finally {
       setLoading(false);
@@ -64,10 +68,13 @@ export default function RolesManager() {
     try {
       await deleteRole(roleToDelete.id);
       setRoles(roles.filter((r) => r.id !== roleToDelete.id));
+      toast.success("Rol eliminado exitosamente");
       setDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (err) {
-      setError("Error al eliminar el rol.");
+      const errorMsg = "Error al eliminar el rol.";
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     }
   };
@@ -79,6 +86,7 @@ export default function RolesManager() {
 
   return (
     <div className="employees-manager">
+      <ToastContainer />
       <div className="toolbar">
         <h1>Gestión de Roles</h1>
         <button className="btn btn-primary" onClick={handleCreate}>
