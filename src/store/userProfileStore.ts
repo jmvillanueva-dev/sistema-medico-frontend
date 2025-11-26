@@ -7,6 +7,7 @@ export interface EmployeeData {
   id: string;
   nombre: string;
   apellido: string;
+  email: string;
   cedula: string;
   especialidad: string;
   codigoProfesional: string;
@@ -37,17 +38,18 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await getEmployeeById(employeeId);
-      set({ employeeData: response.data, loading: false });
+      set({ employeeData: response.data.data, loading: false });
     } catch (err: any) {
       const errorMsg =
-        err.response?.data?.message || "No se pudieron cargar los datos del perfil.";
+        err.response?.data?.message ||
+        "No se pudieron cargar los datos del perfil.";
       set({ error: errorMsg, loading: false });
     }
   },
-    /**
-     * Actualiza directamente los datos del empleado en el store.
-     */
-    setEmployeeData: (data: EmployeeData) => {
-        set({ employeeData: data });
-    }
+  /**
+   * Actualiza directamente los datos del empleado en el store.
+   */
+  setEmployeeData: (data: EmployeeData) => {
+    set({ employeeData: data });
+  },
 }));
