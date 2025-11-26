@@ -17,7 +17,7 @@ const userEmail = user?.email || "";
 
 <header class="dashboard-header">
   <div class="container">
-    <a href="/" class="logo">
+    <a href="/admin/dashboard" class="logo">
       <img
         src="/logo-cm-ue.svg"
         alt="Logo Centro Médico Urdiales-Espinoza"
@@ -38,23 +38,24 @@ const userEmail = user?.email || "";
 <style>
   .dashboard-header {
     width: 100%;
-    padding: 0.75rem 0;
+    padding: var(--space-3, 0.75rem) 0;
     position: sticky;
     top: 0;
     z-index: 1000;
+    flex-shrink: 0;
   }
 
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.5rem 2rem;
+    padding: var(--space-2, 0.5rem) var(--space-6, 1.5rem);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #fff;
-    border-radius: 100px;
-    border-bottom: 1px solid #e5e5e5;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-surface, #fff);
+    border-radius: var(--radius-pill, 100px);
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
   }
 
   .logo {
@@ -62,34 +63,41 @@ const userEmail = user?.email || "";
     align-items: center;
   }
 
+  .logo img {
+    display: block; /* Elimina espacio extra debajo de la imagen */
+  }
+
   .user-menu {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-4, 1rem);
   }
 
   .user-info {
     display: flex;
     flex-direction: column;
     text-align: right;
+    justify-content: center;
   }
 
   .user-name {
     font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-ink, #0f172a);
+    line-height: var(--line-height-tight, 1.2);
   }
 
   .user-email {
-    font-size: 0.8rem;
-    color: #777;
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-secondary, #475569);
+    line-height: var(--line-height-tight, 1.2);
   }
 
   .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #f0f0f0;
+    background-color: var(--color-background, #f8fafc);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -99,7 +107,7 @@ const userEmail = user?.email || "";
   .user-avatar :global(svg) {
     width: 20px;
     height: 20px;
-    color: #555;
+    color: var(--color-text-secondary, #475569);
   }
 
   @media (max-width: 768px) {
@@ -107,7 +115,7 @@ const userEmail = user?.email || "";
       display: none;
     }
     .container {
-      padding: 0 1rem;
+      padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
     }
   }
 </style>

@@ -16,13 +16,27 @@ const { title } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Administración del Sistema" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
   <body>
     <div class="dashboard-layout">
+      <!-- Mobile Menu Toggle -->
+      <button
+        class="mobile-menu-toggle"
+        id="mobileMenuToggle"
+        aria-label="Abrir menú"
+      >
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+
+      <!-- Overlay para móvil -->
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
       <Sidebar />
       <main class="dashboard-main-content">
         <DashboardHeader />
@@ -32,31 +46,191 @@ const { title } = Astro.props;
         <Footer />
       </main>
     </div>
-    <style>
-      :root {
-        --sidebar-width: 250px;
-      }
 
+    <script>
+      // Manejo del menú móvil
+      document.addEventListener("DOMContentLoaded", () => {
+        const toggleBtn = document.getElementById("mobileMenuToggle");
+        const overlay = document.getElementById("sidebarOverlay");
+        const sidebarEl = document.querySelector(".sidebar");
+        const body = document.body;
+
+        function openSidebar() {
+          sidebarEl?.classList.add("sidebar--open");
+          overlay?.classList.add("active");
+          toggleBtn?.classList.add("active");
+          body.style.overflow = "hidden";
+        }
+
+        function closeSidebar() {
+          sidebarEl?.classList.remove("sidebar--open");
+          overlay?.classList.remove("active");
+          toggleBtn?.classList.remove("active");
+          body.style.overflow = "";
+        }
+
+        toggleBtn?.addEventListener("click", () => {
+          if (sidebarEl?.classList.contains("sidebar--open")) {
+            closeSidebar();
+          } else {
+            openSidebar();
+          }
+        });
+
+        overlay?.addEventListener("click", closeSidebar);
+
+        // Cerrar menú al cambiar el tamaño de la ventana
+        window.addEventListener("resize", () => {
+          if (window.innerWidth >= 1024) {
+            closeSidebar();
+          }
+        });
+
+        // Escuchar cambios en el estado colapsado del sidebar
+        const mainContent = document.querySelector(
+          ".dashboard-main-content"
+        ) as HTMLElement | null;
+
+        if (sidebarEl && mainContent) {
+          // Observer para detectar cambios en la clase del sidebar
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.attributeName === "class") {
+                const isCollapsed = sidebarEl.classList.contains("collapsed");
+                mainContent.style.width = isCollapsed
+                  ? "calc(100% - 70px - var(--space-6))"
+                  : "";
+              }
+            });
+          });
+
+          observer.observe(sidebarEl, { attributes: true });
+
+          // Establecer estado inicial
+          if (sidebarEl.classList.contains("collapsed")) {
+            mainContent.style.width = "calc(100% - 70px - var(--space-6))";
+          }
+        }
+      });
+    </script>
+
+    <style>
       .dashboard-layout {
         display: flex;
         min-height: 100vh;
-        background-color: var(--color-background-secondary);
+        background-color: var(--color-background);
       }
 
       .dashboard-main-content {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        width: calc(100% - var(--sidebar-width));
+        width: calc(100% - var(--sidebar-width) - var(--space-6));
+        min-width: 0; /* Previene overflow */
+        min-height: 100vh;
+        transition: width var(--transition-normal);
       }
 
       .page-content {
-        flex-grow: 1;
-        background-color: #fff;
-        padding: 2rem;
-        margin: 1rem;
-        border-radius: 10px;
+        flex: 1;
+        background-color: var(--color-surface);
+        padding: var(--space-6);
+        margin: var(--space-4);
+        border-radius: var(--radius-md);
         overflow-y: auto;
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* Mobile Menu Toggle */
+      .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: var(--space-4);
+        left: var(--space-4);
+        z-index: 1100;
+        width: 44px;
+        height: 44px;
+        padding: var(--space-2);
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-fast);
+      }
+
+      .hamburger-line {
+        width: 20px;
+        height: 2px;
+        background-color: var(--color-ink);
+        border-radius: 2px;
+        transition: all var(--transition-fast);
+      }
+
+      .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+      }
+
+      .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+
+      /* Overlay */
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+      }
+
+      .sidebar-overlay.active {
+        opacity: 1;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px) {
+        .mobile-menu-toggle {
+          display: flex;
+        }
+
+        .sidebar-overlay {
+          display: block;
+        }
+
+        .dashboard-main-content {
+          width: 100%;
+        }
+
+        .page-content {
+          padding: var(--space-4);
+          margin: var(--space-3);
+          margin-top: calc(
+            var(--space-3) + 60px
+          ); /* Espacio para el botón de menú */
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page-content {
+          padding: var(--space-3);
+          margin: var(--space-2);
+          margin-top: calc(var(--space-2) + 60px);
+          border-radius: var(--radius-sm);
+        }
       }
     </style>
   </body>

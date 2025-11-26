@@ -6,7 +6,7 @@ const { url } = Astro;
 // Definir tipos para TypeScript
 interface MenuItemBase {
   name: string;
-  icon: string;
+  icon: string; // Ruta al icono SVG
 }
 
 interface MenuItemWithHref extends MenuItemBase {
@@ -28,11 +28,11 @@ const menuItems: MenuItem[] = [
   {
     name: "Dashboard",
     href: "/admin/dashboard",
-    icon: "📊",
+    icon: "/src/icons/system/dashboard.svg",
   },
   {
     name: "Empleados",
-    icon: "👥",
+    icon: "/src/icons/system/users-group.svg",
     subItems: [
       {
         name: "Lista de Empleados",
@@ -47,17 +47,17 @@ const menuItems: MenuItem[] = [
   {
     name: "Usuarios",
     href: "/admin/users",
-    icon: "👤",
+    icon: "/src/icons/system/user-single.svg",
   },
   {
     name: "Pacientes",
     href: "/admin/patients",
-    icon: "🏥",
+    icon: "/src/icons/system/hospital.svg",
   },
   {
     name: "Historias Clínicas",
     href: "/admin/clinical-records",
-    icon: "📋",
+    icon: "/src/icons/system/clipboard.svg",
   },
 ];
 
@@ -81,7 +81,7 @@ const generateId = (name: string): string => {
 };
 ---
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <a href="/admin/dashboard" class="sidebar-brand">
       <img
@@ -91,6 +91,21 @@ const generateId = (name: string): string => {
       />
       <span class="sidebar-title">MENU</span>
     </a>
+    <!-- Botón para colapsar/expandir -->
+    <button
+      type="button"
+      class="sidebar-toggle"
+      id="sidebarToggle"
+      aria-label="Colapsar menú"
+      title="Colapsar menú"
+    >
+      <img
+        src="/src/icons/system/chevron-left.svg"
+        alt=""
+        class="toggle-icon"
+        aria-hidden="true"
+      />
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -123,8 +138,14 @@ const generateId = (name: string): string => {
                     { active: isParentActive },
                   ]}
                   data-submenu={submenuId}
+                  title={item.name}
                 >
-                  <span class="nav-icon">{item.icon}</span>
+                  <img
+                    src={item.icon}
+                    alt=""
+                    class="nav-icon"
+                    aria-hidden="true"
+                  />
                   <span class="nav-text">{item.name}</span>
                   <span class="arrow" />
                 </button>
@@ -142,7 +163,7 @@ const generateId = (name: string): string => {
                           data-nav-item
                         >
                           <span class="submenu-bullet">•</span>
-                          {subItem.name}
+                          <span class="submenu-text">{subItem.name}</span>
                         </a>
                       </li>
                     );
@@ -157,8 +178,14 @@ const generateId = (name: string): string => {
                   href={item.href}
                   class:list={["nav-link", { active: isActive }]}
                   data-nav-item
+                  title={item.name}
                 >
-                  <span class="nav-icon">{item.icon}</span>
+                  <img
+                    src={item.icon}
+                    alt=""
+                    class="nav-icon"
+                    aria-hidden="true"
+                  />
                   <span class="nav-text">{item.name}</span>
                 </a>
               </li>
@@ -174,21 +201,52 @@ const generateId = (name: string): string => {
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggle");
+    const COLLAPSED_KEY = "sidebar-collapsed";
+
+    // Restaurar estado colapsado desde localStorage
+    const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === "true";
+    if (isCollapsed && sidebar) {
+      sidebar.classList.add("collapsed");
+    }
+
+    // Manejar clic en botón de colapsar
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener("click", function () {
+        sidebar.classList.toggle("collapsed");
+        const nowCollapsed = sidebar.classList.contains("collapsed");
+        localStorage.setItem(COLLAPSED_KEY, String(nowCollapsed));
+
+        // Actualizar aria-label del botón
+        const label = nowCollapsed ? "Expandir menú" : "Colapsar menú";
+        toggleBtn.setAttribute("aria-label", label);
+        toggleBtn.setAttribute("title", label);
+      });
+    }
+
     // Manejar clic en botones de submenú
     document.querySelectorAll(".submenu-toggle").forEach((button) => {
-      button.addEventListener("click", function (e) {
+      button.addEventListener("click", function (this: HTMLElement, e: Event) {
         e.preventDefault();
         e.stopPropagation();
 
         const parentLi = this.closest(".has-submenu");
         const submenuId = this.getAttribute("data-submenu");
-        const submenu = document.getElementById(submenuId);
+        if (!submenuId || !parentLi) return;
+
+        const submenu = document.getElementById(
+          submenuId
+        ) as HTMLElement | null;
+        if (!submenu) return;
 
         // Cerrar otros submenús abiertos
         document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
           if (openLi !== parentLi) {
             openLi.classList.remove("open");
-            const otherSubmenu = openLi.querySelector(".submenu");
+            const otherSubmenu = openLi.querySelector(
+              ".submenu"
+            ) as HTMLElement | null;
             if (otherSubmenu) {
               otherSubmenu.style.maxHeight = "0";
             }
@@ -209,7 +267,7 @@ const generateId = (name: string): string => {
 
     // Manejar clic en enlaces de navegación
     document.querySelectorAll("[data-nav-item]").forEach((link) => {
-      link.addEventListener("click", function (e) {
+      link.addEventListener("click", function (this: HTMLElement, e: Event) {
         // No cerrar el submenú al hacer clic en un subitem
         e.stopPropagation();
 
@@ -225,7 +283,9 @@ const generateId = (name: string): string => {
           const parentLi = submenuItem.closest(".has-submenu");
           if (parentLi) {
             parentLi.classList.add("open");
-            const submenu = parentLi.querySelector(".submenu");
+            const submenu = parentLi.querySelector(
+              ".submenu"
+            ) as HTMLElement | null;
             if (submenu) {
               submenu.style.maxHeight = submenu.scrollHeight + "px";
             }
@@ -235,11 +295,14 @@ const generateId = (name: string): string => {
     });
 
     // Cerrar submenús al hacer clic fuera del sidebar
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest(".sidebar")) {
+    document.addEventListener("click", function (e: MouseEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && !target.closest(".sidebar")) {
         document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
           openLi.classList.remove("open");
-          const submenu = openLi.querySelector(".submenu");
+          const submenu = openLi.querySelector(
+            ".submenu"
+          ) as HTMLElement | null;
           if (submenu) {
             submenu.style.maxHeight = "0";
           }
@@ -252,7 +315,7 @@ const generateId = (name: string): string => {
       const activeSubItem = item.querySelector(".submenu-link.active");
       if (activeSubItem) {
         item.classList.add("open");
-        const submenu = item.querySelector(".submenu");
+        const submenu = item.querySelector(".submenu") as HTMLElement | null;
         if (submenu) {
           submenu.style.maxHeight = submenu.scrollHeight + "px";
         }

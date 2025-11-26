@@ -1,95 +1,292 @@
+/* =============================================
+   EMPLOYEES/ROLES MANAGER STYLES
+   ============================================= */
+
 .employees-manager {
   width: 100%;
 }
 
+/* Toolbar Header */
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .toolbar h1 {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
+/* Table Container */
 .table-container {
-  /* background-color: var(--color-background-primary);  */
-  /* border-radius: var(--border-radius-large); */
-  background-color: var(--color-light);
-  border-radius: 10px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-small);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
 }
 
+/* =============================================
+   RESPONSIVE TABLE STYLES
+   ============================================= */
+
+.responsive-table,
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
 }
 
-thead {
-  background-color: var(--color-gray);
-  color: var(--color-dark);
-  text-align: center;
-}
-
-th, td {
-  padding: 0.7rem;
+.responsive-table th,
+.responsive-table td,
+table th,
+table td {
+  padding: var(--space-3) var(--space-4);
   text-align: left;
-  border-bottom: 1px solid var(--color-gray);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
 }
 
-th {
-  font-weight: 600;
+.responsive-table th,
+table th {
+  background-color: var(--color-background);
   color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-tbody tr:last-child td {
+.responsive-table tbody tr:last-child td,
+table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.status-badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--border-radius-pill);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
+.responsive-table tbody tr:hover,
+table tbody tr:hover {
+  background-color: var(--color-primary-100);
 }
 
-.status-badge.active {
-  background-color: var(--color-success-light);
-  color: var(--color-success-dark);
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-badge.active,
+.status-badge.✅ {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .status-badge.inactive {
-  background-color: var(--color-error-light);
-  color: var(--color-error-dark);
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
 }
 
+/* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-/* Estilos generales para botones (puedes moverlos a global.css si lo prefieres) */
-
-/* .btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
+.action-buttons .btn-blue-system,
+.action-buttons .btn-danger {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
 }
 
-.btn-secondary {
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+/* Loading State */
+.loading-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  color: var(--color-text-secondary);
+  gap: var(--space-3);
 }
-.btn-secondary:hover {
-  background-color: var(--color-border);
-} */
 
+.loading-message::before {
+  content: "";
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
 
+/* Error Message */
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+  border-radius: var(--radius-sm);
+  margin: var(--space-4);
+}
 
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 320px;
+}
+
+/* =============================================
+   MOBILE STYLES - Table to Cards
+   ============================================= */
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+
+  .toolbar h1 {
+    font-size: var(--font-size-lg);
+    text-align: center;
+  }
+
+  .toolbar .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Transform table to cards */
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td,
+  table,
+  table tbody,
+  table tr,
+  table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table thead,
+  table thead {
+    display: none;
+  }
+
+  .responsive-table tr,
+  table tbody tr {
+    background: var(--color-surface);
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+  }
+
+  .responsive-table tr:hover,
+  table tbody tr:hover {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-md);
+  }
+
+  .responsive-table td,
+  table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-background);
+    padding: var(--space-3) 0;
+    text-align: right;
+    gap: var(--space-4);
+  }
+
+  .responsive-table td:last-child,
+  table td:last-child {
+    border-bottom: none;
+    justify-content: flex-end;
+    padding-top: var(--space-4);
+  }
+
+  /* Show column label via data-label attribute */
+  .responsive-table td::before,
+  table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-align: left;
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .action-buttons .btn-blue-system,
+  .action-buttons .btn-danger {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons .btn-blue-system,
+  .action-buttons .btn-danger {
+    width: 100%;
+  }
+}
+
+/* Animation for spin */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Employee } from "./EmployeesManager";
 import EmployeeProfileForm from "./forms/EmployeeProfileForm";
 import EmployeeEmailForm from "./forms/EmployeeEmailForm";
@@ -21,77 +21,147 @@ export default function EmployeeFormModal({
   onSave,
   employee,
 }: Props) {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const isEditing = employee !== null;
   const title = isEditing ? "Editar Empleado" : "Crear Nuevo Empleado";
 
-  const handleClose = () => {
+  // Manejar cierre del modal
+  const handleClose = useCallback(() => {
     setActiveTab("profile");
     onClose();
-  };
+  }, [onClose]);
 
   const handleSaveAndClose = () => {
     setActiveTab("profile");
     onSave();
   };
 
+  // Enfocar el primer elemento al abrir
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      // Pequeño delay para que el modal se renderice
+      const timer = setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Manejar tecla Escape para cerrar el modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      // Prevenir scroll del body cuando el modal está abierto
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, handleClose]);
+
+  // Manejar clic en el overlay para cerrar
+  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      handleClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content form-modal">
+    <div
+      className="modal-overlay"
+      onClick={handleOverlayClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div className="modal-content form-modal" ref={modalRef}>
         <div className="form-modal-header">
-          <h2 className="form-modal-title">{title}</h2>
-          <button onClick={handleClose} className="btn-close">
-            <img src={CloseIcon.src} alt="Cerrar" className="icon-close" />
+          <h2 id="modal-title" className="form-modal-title">
+            {title}
+          </h2>
+          <button
+            ref={closeButtonRef}
+            onClick={handleClose}
+            className="btn-close"
+            aria-label="Cerrar modal"
+            type="button"
+          >
+            <img
+              src={CloseIcon.src}
+              alt=""
+              className="icon-close"
+              aria-hidden="true"
+            />
           </button>
         </div>
 
         <div className="form-modal-body">
           {isEditing && (
-            <div className="tabs">
+            <div
+              className="tabs"
+              role="tablist"
+              aria-label="Secciones del formulario"
+            >
               <button
+                role="tab"
+                aria-selected={activeTab === "profile"}
+                aria-controls="panel-profile"
+                id="tab-profile"
                 className={`tab ${activeTab === "profile" ? "active" : ""}`}
                 onClick={() => setActiveTab("profile")}
+                type="button"
               >
                 Datos Personales
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === "email"}
+                aria-controls="panel-email"
+                id="tab-email"
                 className={`tab ${activeTab === "email" ? "active" : ""}`}
                 onClick={() => setActiveTab("email")}
+                type="button"
               >
                 Email
               </button>
-              {/* {isEditing && (
-                <button
-                  className={`tab ${activeTab === "password" ? "active" : ""}`}
-                  onClick={() => setActiveTab("password")}>
-                  Contraseña
-                </button>
-              )} */}
             </div>
           )}
 
           <div className="tab-content">
             {activeTab === "profile" && (
-              <EmployeeProfileForm
-                employee={employee}
-                onSave={handleSaveAndClose}
-              />
+              <div
+                role="tabpanel"
+                id="panel-profile"
+                aria-labelledby="tab-profile"
+              >
+                <EmployeeProfileForm
+                  employee={employee}
+                  onSave={handleSaveAndClose}
+                />
+              </div>
             )}
             {activeTab === "email" && isEditing && (
-              <EmployeeEmailForm
-                employeeId={employee.id}
-                currentEmail={employee.email || ""}
-                onSave={handleSaveAndClose}
-              />
-            )}
-            {/* {activeTab === "password" && isEditing && (
-              <div>
-                <p>Aquí irá el formulario para actualizar la contraseña.</p>
+              <div role="tabpanel" id="panel-email" aria-labelledby="tab-email">
+                <EmployeeEmailForm
+                  employeeId={employee.id}
+                  currentEmail={employee.email || ""}
+                  onSave={handleSaveAndClose}
+                />
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </div>
