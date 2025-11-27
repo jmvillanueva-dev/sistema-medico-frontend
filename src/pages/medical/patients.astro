@@ -1,0 +1,10 @@
+---
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import PatientsManager from "@/components/PatientsManager";
+---
+
+<DashboardLayout title="Gestión de Pacientes" role="medical">
+  <div class="flex flex-col gap-6">
+    <PatientsManager client:load canDelete={false} />
+  </div>
+</DashboardLayout>

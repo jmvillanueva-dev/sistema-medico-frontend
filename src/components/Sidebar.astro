@@ -81,8 +81,13 @@ const menuItems = allMenuItems
   })
   .map((item) => {
     // Ajuste específico para el link del dashboard si es médico
-    if (role === "medical" && item.name === "Dashboard") {
-      return { ...item, href: "/medical/dashboard" };
+    if (role === "medical") {
+      if (item.name === "Dashboard") {
+        return { ...item, href: "/medical/dashboard" };
+      }
+      if (item.name === "Pacientes") {
+        return { ...item, href: "/medical/patients" };
+      }
     }
     return item;
   });
