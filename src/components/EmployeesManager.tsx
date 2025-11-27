@@ -5,8 +5,6 @@ import EmployeeFormModal from "./EmployeeFormModal";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import "./EmployeesManager.css";
-
 import EditIcon from "@/icons/system/edit.svg";
 import DeleteIcon from "@/icons/system/delete.svg";
 
@@ -109,14 +107,15 @@ export default function EmployeesManager() {
 
   // Render Loading State
   const renderLoading = () => (
-    <div className="loading-message">
+    <div className="flex flex-col items-center justify-center py-12 text-slate-500 gap-3">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
       <span>Cargando empleados...</span>
     </div>
   );
 
   // Render Error State
   const renderError = () => (
-    <div className="error-message">
+    <div className="flex items-center justify-center gap-2 p-6 text-red-600 bg-red-50 rounded-lg m-4">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"
@@ -138,10 +137,10 @@ export default function EmployeesManager() {
 
   // Render Empty State
   const renderEmptyState = () => (
-    <div className="empty-state">
-      <span className="empty-state-icon">📭</span>
-      <h3 className="empty-state-title">No se encontraron empleados</h3>
-      <p className="empty-state-description">
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+      <span className="text-5xl mb-4 opacity-50">📭</span>
+      <h3 className="text-lg font-semibold text-slate-900 mb-2">No se encontraron empleados</h3>
+      <p className="text-sm text-slate-500 max-w-xs">
         Aún no hay empleados registrados. Crea uno nuevo para comenzar.
       </p>
     </div>
@@ -149,69 +148,133 @@ export default function EmployeesManager() {
 
   // Render Table
   const renderTable = () => (
-    <table className="responsive-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Cédula</th>
-          <th>Especialidad</th>
-          <th>Teléfono</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {employees.map((employee) => (
-          <tr key={employee.id}>
-            <td data-label="Nombre">{`${employee.nombre} ${employee.apellido}`}</td>
-            <td data-label="Cédula">{employee.cedula}</td>
-            <td data-label="Especialidad">{employee.especialidad}</td>
-            <td data-label="Teléfono">{employee.telefono}</td>
-            <td data-label="Estado">
-              <span
-                className={`status-badge ${
-                  employee.estaActivo ? "active" : "inactive"
-                }`}
-              >
-                {employee.estaActivo ? "✅ Activo" : "❌ Inactivo"}
-              </span>
-            </td>
-            <td data-label="Acciones">
-              <div className="action-buttons">
-                <button
-                  className="btn btn-blue-system"
-                  onClick={() => handleEdit(employee)}
-                  title="Editar empleado"
-                >
-                  <img
-                    src={EditIcon.src}
-                    alt="Editar"
-                    className="icon icon-scale"
-                  />
-                  <span>Editar</span>
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleDelete(employee)}
-                  title="Eliminar permanentemente este registro"
-                >
-                  <img
-                    src={DeleteIcon.src}
-                    alt="Eliminar"
-                    className="icon icon-scale"
-                  />
-                  <span>Eliminar</span>
-                </button>
-              </div>
-            </td>
+    <div className="w-full">
+      {/* Desktop Table */}
+      <table className="w-full border-collapse bg-white hidden md:table">
+        <thead>
+          <tr className="bg-slate-50 border-b border-slate-200">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Cédula</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Especialidad</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Teléfono</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
           </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-200">
+          {employees.map((employee) => (
+            <tr key={employee.id} className="hover:bg-slate-50 transition-colors">
+              <td className="px-4 py-3 text-sm text-slate-900">{`${employee.nombre} ${employee.apellido}`}</td>
+              <td className="px-4 py-3 text-sm text-slate-600">{employee.cedula}</td>
+              <td className="px-4 py-3 text-sm text-slate-600">{employee.especialidad}</td>
+              <td className="px-4 py-3 text-sm text-slate-600">{employee.telefono}</td>
+              <td className="px-4 py-3 text-sm">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    employee.estaActivo 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {employee.estaActivo ? "Activo" : "Inactivo"}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-sm">
+                <div className="flex gap-2">
+                  <button
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    onClick={() => handleEdit(employee)}
+                    title="Editar empleado"
+                  >
+                    <img
+                      src={EditIcon.src}
+                      alt="Editar"
+                      className="w-4 h-4"
+                    />
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+                    onClick={() => handleDelete(employee)}
+                    title="Eliminar permanentemente este registro"
+                  >
+                    <img
+                      src={DeleteIcon.src}
+                      alt="Eliminar"
+                      className="w-4 h-4"
+                    />
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden flex flex-col gap-4">
+        {employees.map((employee) => (
+          <div key={employee.id} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">{`${employee.nombre} ${employee.apellido}`}</h3>
+                <p className="text-xs text-slate-500">{employee.especialidad}</p>
+              </div>
+              <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    employee.estaActivo 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {employee.estaActivo ? "Activo" : "Inactivo"}
+                </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 mb-4">
+              <div>
+                <span className="font-medium text-slate-500 block">Cédula:</span>
+                {employee.cedula}
+              </div>
+              <div>
+                <span className="font-medium text-slate-500 block">Teléfono:</span>
+                {employee.telefono}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3 border-t border-slate-100">
+               <button
+                    className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    onClick={() => handleEdit(employee)}
+                  >
+                    <img
+                      src={EditIcon.src}
+                      alt="Editar"
+                      className="w-4 h-4"
+                    />
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+                    onClick={() => handleDelete(employee)}
+                  >
+                    <img
+                      src={DeleteIcon.src}
+                      alt="Eliminar"
+                      className="w-4 h-4"
+                    />
+                    <span>Eliminar</span>
+                  </button>
+            </div>
+          </div>
         ))}
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 
   return (
-    <div className="employees-manager">
+    <div className="w-full">
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -224,14 +287,14 @@ export default function EmployeesManager() {
         pauseOnHover
         theme="light"
       />
-      <div className="toolbar">
-        <h1>Gestión de Empleados</h1>
-        <button className="btn btn-primary" onClick={handleCreate}>
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold text-slate-900 m-0">Gestión de Empleados</h1>
+        <button className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm w-full sm:w-auto" onClick={handleCreate}>
           + Crear Nuevo Empleado
         </button>
       </div>
 
-      <div className="table-container">
+      <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200">
         {loading && renderLoading()}
         {error && !loading && renderError()}
         {!loading && !error && employees.length === 0 && renderEmptyState()}

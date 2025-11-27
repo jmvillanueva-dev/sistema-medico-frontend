@@ -4,7 +4,6 @@ import "react-toastify/dist/ReactToastify.css";
 import UpdateProfileForm from "./forms/UpdateProfileForm";
 import UpdateEmailForm from "./forms/UpdateEmailForm";
 import UpdatePasswordForm from "./forms/UpdatePasswordForm";
-import "./ProfileManager.css";
 
 type ActiveView = "profile" | "email" | "password";
 
@@ -31,20 +30,24 @@ const ProfileManager: React.FC = () => {
   ];
 
   return (
-    <div className="profile-manager">
+    <div className="flex flex-col md:flex-row gap-8">
       <ToastContainer />
-      <nav className="profile-nav">
+      <nav className="flex flex-row md:flex-col gap-2 w-full md:w-[200px] shrink-0 overflow-x-auto md:overflow-visible pb-4 md:pb-0 border-b-2 md:border-b-0 md:border-r border-slate-100 md:pr-4">
         {navLinks.map((link) => (
           <button
             key={link.id}
-            className={`nav-button ${activeView === link.id ? "active" : ""}`}
+            className={`w-auto md:w-full px-4 py-3 text-left text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeView === link.id
+                ? "bg-blue-50 text-primary font-semibold"
+                : "text-slate-600 hover:bg-slate-50"
+            }`}
             onClick={() => setActiveView(link.id as ActiveView)}
           >
             {link.label}
           </button>
         ))}
       </nav>
-      <div className="profile-content">{renderContent()}</div>
+      <div className="flex-grow max-w-full md:max-w-2xl">{renderContent()}</div>
     </div>
   );
 };

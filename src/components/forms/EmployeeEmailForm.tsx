@@ -6,8 +6,6 @@ import type { UpdateEmailFormData } from "@/lib/validation/profile";
 import { updateEmployeeEmail } from "@/services/api";
 import { toast } from "react-toastify";
 
-import "./UpdateForm.css";
-
 interface Props {
   employeeId: string;
   currentEmail: string;
@@ -56,27 +54,33 @@ const EmployeeEmailForm: React.FC<Props> = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="update-form">
-        <div className="form-group">
-          <label htmlFor="current-email">Correo Actual</label>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="current-email" className="text-sm font-medium text-slate-900">Correo Actual</label>
           <input
             id="current-email"
             type="email"
             value={currentEmail}
             disabled
+            className="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded-lg cursor-not-allowed"
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="nuevoEmail">Nuevo Correo Electrónico</label>
-          <input id="nuevoEmail" type="email" {...register("nuevoEmail")} />
+        <div className="flex flex-col gap-2">
+          <label htmlFor="nuevoEmail" className="text-sm font-medium text-slate-900">Nuevo Correo Electrónico</label>
+          <input 
+            id="nuevoEmail" 
+            type="email" 
+            {...register("nuevoEmail")} 
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
           {errors.nuevoEmail && (
-            <p className="error-message">{errors.nuevoEmail.message}</p>
+            <p className="text-xs text-red-600 font-medium">{errors.nuevoEmail.message}</p>
           )}
         </div>
-        <div>
+        <div className="pt-4 border-t border-slate-100 flex justify-end">
           <button
             type="submit"
-            className="submit-button"
+            className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
             disabled={isSubmitting || !isDirty}
           >
             {isSubmitting ? "Actualizando..." : "Actualizar Correo"}

@@ -6,8 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/authStore";
 import { getDashboardPath } from "@/utils/navigation";
 import { getLockoutStatus, clearLockout } from "@/utils/lockout";
-import "@/styles/Login.css";
-
+import { Button } from "@/components/common/Button";
+import { Input } from "@/components/common/Input";
 
 // Esquema de validacion
 const loginSchema = z.object({
@@ -19,7 +19,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
-
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -70,7 +69,6 @@ const LoginForm: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setLockoutMessage(null);
 
@@ -94,80 +92,120 @@ const LoginForm: React.FC = () => {
   const isFormDisabled = loading || lockoutMessage !== null || !isInitialized;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md space-y-6">
       {/* Mostrar error global de la store o el mensaje de bloqueo */}
       {lockoutMessage ? (
-        <div className="global-error">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+          </svg>
           <span>{lockoutMessage}</span>
         </div>
       ) : (
         globalError && (
-          <div className="global-error">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+          <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" x2="12" y1="8" y2="12" />
+              <line x1="12" x2="12.01" y1="16" y2="16" />
+            </svg>
             <span>{globalError}</span>
           </div>
         )
       )}
 
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          placeholder="nombre@ejemplo.com"
-          {...register("email")}
-          className={`form-input ${errors.email ? "input-error" : ""}`}
+      <Input
+        id="email"
+        type="email"
+        label="Email"
+        placeholder="nombre@ejemplo.com"
+        {...register("email")}
+        error={errors.email?.message}
+        disabled={isFormDisabled}
+      />
+
+      <div className="relative">
+        <Input
+          id="password"
+          type={showPassword ? "text" : "password"}
+          label="Contraseña"
+          placeholder="••••••••"
+          {...register("password")}
+          error={errors.password?.message}
           disabled={isFormDisabled}
         />
-        {errors.email && (
-          <p className="error-message">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            {errors.email.message}
-          </p>
-        )}
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-[38px] text-slate-400 hover:text-slate-600 focus:outline-none"
+          disabled={isFormDisabled}
+          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+        >
+          {showPassword ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </button>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="password">Contraseña</label>
-        <div style={{ position: "relative" }}>
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            {...register("password")}
-            className={`form-input ${errors.password ? "input-error" : ""}`}
-            disabled={isFormDisabled}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="password-toggle"
-            disabled={isFormDisabled}
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {showPassword ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            )}
-          </button>
-        </div>
-        {errors.password && (
-          <p className="error-message">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            {errors.password.message}
-          </p>
-        )}
-      </div>
-
-      <button
+      <Button
         type="submit"
-        className="btn btn-primary btn-submit"
+        variant="primary"
+        fullWidth
+        isLoading={loading}
         disabled={isFormDisabled}
       >
         {loading ? "Ingresando..." : "Ingresar"}
-      </button>
+      </Button>
     </form>
   );
 };

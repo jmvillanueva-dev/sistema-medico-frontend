@@ -7,8 +7,6 @@ import { useAuthStore } from "@/store/authStore";
 import { updateMyPassword } from "@/services/api";
 import { toast } from "react-toastify";
 
-import "./UpdateForm.css";
-
 const UpdatePasswordForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,32 +44,40 @@ const UpdatePasswordForm: React.FC = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="update-form">
-        <div className="form-group">
-          <label htmlFor="contrasenaActual">Contraseña Actual</label>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="contrasenaActual" className="text-sm font-medium text-slate-900">Contraseña Actual</label>
           <input
             id="contrasenaActual"
             type="password"
             {...register("contrasenaActual")}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
           {errors.contrasenaActual && (
-            <p className="error-message">{errors.contrasenaActual.message}</p>
+            <p className="text-xs text-red-600 font-medium">{errors.contrasenaActual.message}</p>
           )}
         </div>
-        <div className="form-group">
-          <label htmlFor="nuevaContrasena">Nueva Contraseña</label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="nuevaContrasena" className="text-sm font-medium text-slate-900">Nueva Contraseña</label>
           <input
             id="nuevaContrasena"
             type="password"
             {...register("nuevaContrasena")}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
           {errors.nuevaContrasena && (
-            <p className="error-message">{errors.nuevaContrasena.message}</p>
+            <p className="text-xs text-red-600 font-medium">{errors.nuevaContrasena.message}</p>
           )}
         </div>
-        <button type="submit" disabled={isSubmitting || !isDirty}>
-          {isSubmitting ? "Actualizando..." : "Actualizar Contraseña"}
-        </button>
+        <div className="pt-4 border-t border-slate-100 flex justify-end">
+          <button 
+            type="submit" 
+            disabled={isSubmitting || !isDirty}
+            className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+          >
+            {isSubmitting ? "Actualizando..." : "Actualizar Contraseña"}
+          </button>
+        </div>
       </form>
     </>
   );

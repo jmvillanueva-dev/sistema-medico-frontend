@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from "react";
-import "./ConfirmationModal.css";
+import { useRef } from "react";
+import { Modal } from "./common/Modal";
+import { Button } from "./common/Button";
 import CloseIcon from "@/icons/system/close.svg";
 import DeleteIcon from "@/icons/system/delete-full.svg";
 
@@ -24,77 +25,28 @@ export default function ConfirmationModal({
 }: Props) {
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Memoizar onCancel para evitar re-renders innecesarios
-  const handleCancel = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
-
-  // Enfocar el botón de cancelar cuando se abre el modal
-  useEffect(() => {
-    if (isOpen && cancelButtonRef.current) {
-      const timer = setTimeout(() => {
-        cancelButtonRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  // Manejar tecla Escape
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
-        handleCancel();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, handleCancel]);
-
-  // Manejar clic en el overlay
-  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      handleCancel();
-    }
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="modal-overlay"
-      onClick={handleOverlayClick}
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="confirmation-title"
-      aria-describedby="confirmation-message"
-    >
-      <div className="modal-content">
-        <h2 id="confirmation-title">{title}</h2>
-        <p id="confirmation-message">{message}</p>
-        <div className="modal-actions">
-          <button
+    <Modal isOpen={isOpen} onClose={onCancel} title={title} size="sm">
+      <div className="flex flex-col gap-4">
+        <p className="text-slate-600">{message}</p>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button
+            variant="secondary"
+            onClick={onCancel}
             ref={cancelButtonRef}
-            className="btn btn-blue-system"
-            onClick={handleCancel}
-            type="button"
+            icon={<img src={CloseIcon.src} alt="" className="w-4 h-4" />}
           >
-            <img src={CloseIcon.src} alt="" aria-hidden="true" />
-            <span>{cancelButtonText}</span>
-          </button>
-          <button className="btn btn-danger" onClick={onConfirm} type="button">
-            <img src={DeleteIcon.src} alt="" aria-hidden="true" />
-            <span>{confirmButtonText}</span>
-          </button>
+            {cancelButtonText}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            icon={<img src={DeleteIcon.src} alt="" className="w-4 h-4" />}
+          >
+            {confirmButtonText}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

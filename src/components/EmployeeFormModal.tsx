@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { Employee } from "./EmployeesManager";
 import EmployeeProfileForm from "./forms/EmployeeProfileForm";
 import EmployeeEmailForm from "./forms/EmployeeEmailForm";
-import "./EmployeeFormModal.css";
-
-import CloseIcon from "@/icons/system/close.svg";
+import { Modal } from "./common/Modal";
 
 interface Props {
   isOpen: boolean;
@@ -13,7 +11,7 @@ interface Props {
   employee: Employee | null;
 }
 
-type Tab = "profile" | "email" | "password";
+type Tab = "profile" | "email";
 
 export default function EmployeeFormModal({
   isOpen,
@@ -22,13 +20,10 @@ export default function EmployeeFormModal({
   employee,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
-  const modalRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const isEditing = employee !== null;
   const title = isEditing ? "Editar Empleado" : "Crear Nuevo Empleado";
 
-  // Manejar cierre del modal
   const handleClose = useCallback(() => {
     setActiveTab("profile");
     onClose();
@@ -39,132 +34,50 @@ export default function EmployeeFormModal({
     onSave();
   };
 
-  // Enfocar el primer elemento al abrir
-  useEffect(() => {
-    if (isOpen && closeButtonRef.current) {
-      // Pequeño delay para que el modal se renderice
-      const timer = setTimeout(() => {
-        closeButtonRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  // Manejar tecla Escape para cerrar el modal
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
-        handleClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      // Prevenir scroll del body cuando el modal está abierto
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, handleClose]);
-
-  // Manejar clic en el overlay para cerrar
-  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      handleClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="modal-overlay"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      <div className="modal-content form-modal" ref={modalRef}>
-        <div className="form-modal-header">
-          <h2 id="modal-title" className="form-modal-title">
-            {title}
-          </h2>
-          <button
-            ref={closeButtonRef}
-            onClick={handleClose}
-            className="btn-close"
-            aria-label="Cerrar modal"
-            type="button"
-          >
-            <img
-              src={CloseIcon.src}
-              alt=""
-              className="icon-close"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-
-        <div className="form-modal-body">
-          {isEditing && (
-            <div
-              className="tabs"
-              role="tablist"
-              aria-label="Secciones del formulario"
+    <Modal isOpen={isOpen} onClose={handleClose} title={title} size="lg">
+      <div className="flex flex-col h-full">
+        {isEditing && (
+          <div className="flex border-b border-slate-200 mb-6">
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "profile"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+              onClick={() => setActiveTab("profile")}
             >
-              <button
-                role="tab"
-                aria-selected={activeTab === "profile"}
-                aria-controls="panel-profile"
-                id="tab-profile"
-                className={`tab ${activeTab === "profile" ? "active" : ""}`}
-                onClick={() => setActiveTab("profile")}
-                type="button"
-              >
-                Datos Personales
-              </button>
-              <button
-                role="tab"
-                aria-selected={activeTab === "email"}
-                aria-controls="panel-email"
-                id="tab-email"
-                className={`tab ${activeTab === "email" ? "active" : ""}`}
-                onClick={() => setActiveTab("email")}
-                type="button"
-              >
-                Email
-              </button>
-            </div>
-          )}
-
-          <div className="tab-content">
-            {activeTab === "profile" && (
-              <div
-                role="tabpanel"
-                id="panel-profile"
-                aria-labelledby="tab-profile"
-              >
-                <EmployeeProfileForm
-                  employee={employee}
-                  onSave={handleSaveAndClose}
-                />
-              </div>
-            )}
-            {activeTab === "email" && isEditing && (
-              <div role="tabpanel" id="panel-email" aria-labelledby="tab-email">
-                <EmployeeEmailForm
-                  employeeId={employee.id}
-                  currentEmail={employee.email || ""}
-                  onSave={handleSaveAndClose}
-                />
-              </div>
-            )}
+              Datos Personales
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "email"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+              onClick={() => setActiveTab("email")}
+            >
+              Email
+            </button>
           </div>
+        )}
+
+        <div className="flex-1">
+          {activeTab === "profile" && (
+            <EmployeeProfileForm
+              employee={employee}
+              onSave={handleSaveAndClose}
+            />
+          )}
+          {activeTab === "email" && isEditing && (
+            <EmployeeEmailForm
+              employeeId={employee.id}
+              currentEmail={employee.email || ""}
+              onSave={handleSaveAndClose}
+            />
+          )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

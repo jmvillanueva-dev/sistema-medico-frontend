@@ -7,8 +7,6 @@ import type { Employee } from "../EmployeesManager";
 import { toast } from "react-toastify";
 import RoleSelector from "./RoleSelector";
 
-import "./UpdateForm.css";
-
 // Esquema extendido para la creación
 const createEmployeeSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
@@ -128,51 +126,67 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="update-form">
-        <div className="form-section">
-          <h3 className="form-section-title">Información Personal</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="nombre">Nombre</label>
-              <input id="nombre" type="text" {...register("nombre")} />
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
+        <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-900 mb-6 pb-3 border-b-2 border-primary">Información Personal</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="nombre" className="text-sm font-medium text-slate-900">Nombre</label>
+              <input 
+                id="nombre" 
+                type="text" 
+                {...register("nombre")} 
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
               {errors.nombre && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.nombre.message as string}
                 </p>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="apellido">Apellido</label>
-              <input id="apellido" type="text" {...register("apellido")} />
+            <div className="flex flex-col gap-2">
+              <label htmlFor="apellido" className="text-sm font-medium text-slate-900">Apellido</label>
+              <input 
+                id="apellido" 
+                type="text" 
+                {...register("apellido")} 
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
               {errors.apellido && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.apellido.message as string}
                 </p>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="cedula">Cédula</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="cedula" className="text-sm font-medium text-slate-900">Cédula</label>
               <input
                 id="cedula"
                 type="text"
                 {...register("cedula")}
                 disabled={isEditing}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${isEditing ? 'border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed' : 'border-slate-300'}`}
               />
               {errors.cedula && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.cedula.message as string}
                 </p>
               )}
             </div>
 
             {!isEditing && (
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input id="email" type="email" {...register("email")} />
+              <div className="flex flex-col gap-2">
+                <label htmlFor="email" className="text-sm font-medium text-slate-900">Email</label>
+                <input 
+                  id="email" 
+                  type="email" 
+                  {...register("email")} 
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
                 {errors.email && (
-                  <p className="error-message">
+                  <p className="text-xs text-red-600 font-medium">
                     {errors.email.message as string}
                   </p>
                 )}
@@ -181,58 +195,65 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
           </div>
         </div>
 
-        <div className="form-section">
-          <h3 className="form-section-title">Información Profesional</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="especialidad">Especialidad</label>
+        <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-900 mb-6 pb-3 border-b-2 border-primary">Información Profesional</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="especialidad" className="text-sm font-medium text-slate-900">Especialidad</label>
               <input
                 id="especialidad"
                 type="text"
                 {...register("especialidad")}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               />
               {errors.especialidad && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.especialidad.message as string}
                 </p>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="telefono">Teléfono</label>
-              <input id="telefono" type="text" {...register("telefono")} />
+            <div className="flex flex-col gap-2">
+              <label htmlFor="telefono" className="text-sm font-medium text-slate-900">Teléfono</label>
+              <input 
+                id="telefono" 
+                type="text" 
+                {...register("telefono")} 
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
               {errors.telefono && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.telefono.message as string}
                 </p>
               )}
             </div>
 
-            <div className="form-group full-width">
-              <label htmlFor="codigoProfesional">
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <label htmlFor="codigoProfesional" className="text-sm font-medium text-slate-900">
                 Código Profesional (Opcional)
               </label>
               <input
                 id="codigoProfesional"
                 type="text"
                 {...register("codigoProfesional")}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               />
             </div>
           </div>
         </div>
 
         {!isEditing && (
-          <div className="form-section">
-            <h3 className="form-section-title">Asignación de Roles</h3>
-            <div className="form-group">
-              <label>Roles</label>
+          <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900 mb-6 pb-3 border-b-2 border-primary">Asignación de Roles</h3>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-900">Roles</label>
               <RoleSelector
                 availableRoles={availableRoles}
                 selectedRoles={rolesField.value}
                 onChange={rolesField.onChange}
               />
               {errors.roles && (
-                <p className="error-message">
+                <p className="text-xs text-red-600 font-medium">
                   {errors.roles.message as string}
                 </p>
               )}
@@ -240,11 +261,11 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave }) => {
           </div>
         )}
 
-        <div className="form-actions">
+        <div className="pt-4 border-t border-slate-100 flex justify-end">
           <button
             type="submit"
             disabled={isSubmitting || (isEditing && !isDirty)}
-            className="submit-button"
+            className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md min-w-[160px]"
           >
             {isSubmitting
               ? "Guardando..."
