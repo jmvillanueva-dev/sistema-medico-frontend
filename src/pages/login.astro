@@ -1,15 +1,19 @@
 ---
-import MainLayout from '@/layouts/MainLayout.astro';
-import LoginForm from '@/components/forms/LoginForm';
-import LoginHeader from '@/components/LoginHeader.astro';
+import MainLayout from "@/layouts/MainLayout.astro";
+import LoginForm from "@/components/forms/LoginForm";
+import LoginHeader from "@/components/LoginHeader.astro";
 ---
 
 <MainLayout title="Iniciar Sesión">
   <LoginHeader />
-  <main class="login-page">
-    <div class="login-container">
-      <h1 class="login-title">Iniciar Sesión</h1>
-      <p class="login-subtitle">
+  <main class="flex-1 flex items-center justify-center p-4 bg-slate-50">
+    <div
+      class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-slate-100 flex flex-col items-center"
+    >
+      <h1 class="text-2xl font-bold text-slate-900 mb-2 text-center">
+        Iniciar Sesión
+      </h1>
+      <p class="text-slate-500 text-center mb-8">
         Accede al sistema de gestión de historias clínicas.
       </p>
 
@@ -21,4 +25,3 @@ import LoginHeader from '@/components/LoginHeader.astro';
     </div>
   </main>
 </MainLayout>
-

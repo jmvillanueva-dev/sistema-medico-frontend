@@ -1,7 +1,6 @@
 ---
-import "./Sidebar.css";
-
 const { url } = Astro;
+const { role = "admin" } = Astro.props;
 
 // Definir tipos para TypeScript
 interface MenuItemBase {
@@ -24,7 +23,7 @@ interface MenuItemWithSubItems extends MenuItemBase {
 
 type MenuItem = MenuItemWithHref | MenuItemWithSubItems;
 
-const menuItems: MenuItem[] = [
+const allMenuItems: MenuItem[] = [
   {
     name: "Dashboard",
     href: "/admin/dashboard",
@@ -61,6 +60,33 @@ const menuItems: MenuItem[] = [
   },
 ];
 
+// Filtrar items basado en el rol
+const menuItems = allMenuItems
+  .filter((item) => {
+    if (role === "admin") return true; // Admin ve todo
+
+    if (role === "medical") {
+      // Personal médico solo ve Dashboard (médico), Pacientes e Historias Clínicas
+      // Nota: El dashboard médico tiene una ruta diferente, la ajustamos aquí si es necesario
+      if (item.name === "Dashboard") {
+        // Ajustamos el href para el dashboard médico dinámicamente o lo manejamos en la redirección
+        // Por ahora, asumimos que el link del sidebar lleva al dashboard correspondiente
+        // Pero como el array es estático, mejor creamos una copia modificada si es necesario
+        return true;
+      }
+      return ["Pacientes", "Historias Clínicas"].includes(item.name);
+    }
+
+    return false;
+  })
+  .map((item) => {
+    // Ajuste específico para el link del dashboard si es médico
+    if (role === "medical" && item.name === "Dashboard") {
+      return { ...item, href: "/medical/dashboard" };
+    }
+    return item;
+  });
+
 // Función para determinar si un item está activo
 const isItemActive = (item: { href?: string }): boolean => {
   if (item.href) {
@@ -81,20 +107,32 @@ const generateId = (name: string): string => {
 };
 ---
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <a href="/admin/dashboard" class="sidebar-brand">
+<aside
+  class="w-[260px] bg-white rounded-2xl border-r border-slate-200 flex flex-col m-3 p-6 sticky top-3 h-[calc(100vh-24px)] overflow-y-auto shadow-sm z-10 transition-all duration-300 group"
+  id="sidebar"
+>
+  <div
+    class="flex items-center justify-between pb-6 mb-6 border-b border-slate-100 transition-all duration-300 group-[.collapsed]:flex-col group-[.collapsed]:gap-2 group-[.collapsed]:items-center"
+  >
+    <div
+      class="flex items-center gap-3 text-slate-900 font-bold text-lg hover:text-primary transition-colors cursor-pointer lg:group-[.collapsed]:hidden"
+      id="headerToggle"
+    >
       <img
         src="/src/icons/system/menu.svg"
         alt="Menu Icon"
-        class="sidebar-logo"
+        class="w-7 h-7 shrink-0"
       />
-      <span class="sidebar-title">MENU</span>
-    </a>
-    <!-- Botón para colapsar/expandir -->
+      <span
+        class="whitespace-nowrap transition-all duration-200 lg:group-[.collapsed]:opacity-0 lg:group-[.collapsed]:w-0 lg:group-[.collapsed]:hidden"
+        >MENU</span
+      >
+    </div>
+
+    <!-- Botón para colapsar/expandir (Solo Desktop) -->
     <button
       type="button"
-      class="sidebar-toggle"
+      class="hidden lg:flex items-center justify-center w-8 h-8 p-0 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer shrink-0 transition-all hover:bg-primary-50 hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
       id="sidebarToggle"
       aria-label="Colapsar menú"
       title="Colapsar menú"
@@ -102,14 +140,37 @@ const generateId = (name: string): string => {
       <img
         src="/src/icons/system/chevron-left.svg"
         alt=""
-        class="toggle-icon"
+        class="w-4 h-4 transition-transform duration-300 group-[.collapsed]:rotate-180"
         aria-hidden="true"
       />
     </button>
+
+    <!-- Botón para cerrar menú (Solo Móvil) -->
+    <button
+      type="button"
+      class="flex lg:hidden items-center justify-center w-8 h-8 p-0 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer shrink-0 transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-500"
+      id="mobileCloseSidebar"
+      aria-label="Cerrar menú"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 
-  <nav class="sidebar-nav">
-    <ul class="nav-list">
+  <nav class="flex-1">
+    <ul class="flex flex-col gap-1 list-none p-0 m-0">
       {
         menuItems.map((item) => {
           const hasSubItems =
@@ -125,7 +186,7 @@ const generateId = (name: string): string => {
             return (
               <li
                 class:list={[
-                  "nav-item",
+                  "relative",
                   "has-submenu",
                   { open: isParentActive },
                 ]}
@@ -133,9 +194,10 @@ const generateId = (name: string): string => {
                 <button
                   type="button"
                   class:list={[
-                    "nav-link",
-                    "submenu-toggle",
-                    { active: isParentActive },
+                    "flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium text-sm transition-all border-none cursor-pointer text-left lg:group-[.collapsed]:justify-center lg:group-[.collapsed]:px-2 submenu-toggle",
+                    isParentActive
+                      ? "bg-primary text-white hover:bg-primary-600 hover:text-white"
+                      : "bg-transparent text-slate-500 hover:bg-primary-50 hover:text-primary",
                   ]}
                   data-submenu={submenuId}
                   title={item.name}
@@ -143,27 +205,60 @@ const generateId = (name: string): string => {
                   <img
                     src={item.icon}
                     alt=""
-                    class="nav-icon"
+                    class:list={[
+                      "w-5 h-5 shrink-0 transition-all",
+                      { "brightness-0 invert": isParentActive },
+                    ]}
                     aria-hidden="true"
                   />
-                  <span class="nav-text">{item.name}</span>
-                  <span class="arrow" />
+                  <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200 lg:group-[.collapsed]:opacity-0 lg:group-[.collapsed]:w-0 lg:group-[.collapsed]:overflow-hidden">
+                    {item.name}
+                  </span>
+                  <span
+                    class:list={[
+                      "w-2 h-2 border-r-2 border-b-2 border-current transform rotate-45 transition-all duration-200 lg:group-[.collapsed]:hidden",
+                      { "rotate-[225deg] -translate-y-1": isParentActive },
+                    ]}
+                  />
+                  <!-- Tooltip -->
+                  <div class="fixed left-[70px] px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible transition-all duration-200 lg:group-[.collapsed]:group-hover/btn:opacity-100 lg:group-[.collapsed]:group-hover/btn:visible z-[1300] pointer-events-none whitespace-nowrap">
+                    {item.name}
+                  </div>
                 </button>
-                <ul id={submenuId} class="submenu">
+                <ul
+                  id={submenuId}
+                  class="list-none p-0 m-0 max-h-0 overflow-hidden transition-all duration-300 lg:group-[.collapsed]:hidden submenu"
+                >
                   {item.subItems.map((subItem) => {
                     const isChildActive = isItemActive(subItem);
                     return (
-                      <li class="submenu-item">
+                      <li class="my-1">
                         <a
                           href={subItem.href}
                           class:list={[
-                            "submenu-link",
-                            { active: isChildActive },
+                            "flex items-center gap-2 pl-10 pr-4 py-2 rounded-lg text-slate-500 no-underline text-sm transition-all hover:bg-primary-50 hover:text-primary group/link relative",
+                            {
+                              "text-primary font-semibold bg-primary-50":
+                                isChildActive,
+                            },
                           ]}
                           data-nav-item
                         >
-                          <span class="submenu-bullet">•</span>
-                          <span class="submenu-text">{subItem.name}</span>
+                          <span
+                            class:list={[
+                              "text-slate-400 text-base leading-none transition-colors shrink-0",
+                              { "text-primary": isChildActive },
+                            ]}
+                          >
+                            •
+                          </span>
+                          <span class="whitespace-nowrap overflow-hidden text-ellipsis">
+                            {subItem.name}
+                          </span>
+                          <!-- Tooltip for submenu items (optional, but good for consistency if text is truncated) -->
+                          <div class="fixed left-[260px] px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible transition-all duration-200 group-hover/link:opacity-100 group-hover/link:visible z-[1300] pointer-events-none whitespace-nowrap lg:hidden">
+                            {subItem.name}
+                          </div>
                         </a>
                       </li>
                     );
@@ -173,20 +268,35 @@ const generateId = (name: string): string => {
             );
           } else if ("href" in item) {
             return (
-              <li class="nav-item">
+              <li class="relative">
                 <a
                   href={item.href}
-                  class:list={["nav-link", { active: isActive }]}
+                  class:list={[
+                    "flex items-center gap-3 w-full px-4 py-3 rounded-lg text-slate-500 font-medium text-sm transition-all no-underline hover:bg-primary-50 hover:text-primary lg:group-[.collapsed]:justify-center lg:group-[.collapsed]:px-2 group/link relative",
+                    {
+                      "bg-primary text-white hover:bg-primary-600 hover:text-white font-semibold":
+                        isActive,
+                    },
+                  ]}
                   data-nav-item
                   title={item.name}
                 >
                   <img
                     src={item.icon}
                     alt=""
-                    class="nav-icon"
+                    class:list={[
+                      "w-5 h-5 shrink-0 transition-all",
+                      { "brightness-0 invert": isActive },
+                    ]}
                     aria-hidden="true"
                   />
-                  <span class="nav-text">{item.name}</span>
+                  <span class="whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200 lg:group-[.collapsed]:opacity-0 lg:group-[.collapsed]:w-0 lg:group-[.collapsed]:hidden">
+                    {item.name}
+                  </span>
+                  <!-- Tooltip -->
+                  <div class="fixed left-[70px] px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible transition-all duration-200 lg:group-[.collapsed]:group-hover/link:opacity-100 lg:group-[.collapsed]:group-hover/link:visible z-[1300] pointer-events-none whitespace-nowrap">
+                    {item.name}
+                  </div>
                 </a>
               </li>
             );
@@ -199,32 +309,93 @@ const generateId = (name: string): string => {
   </nav>
 </aside>
 
+<style>
+  /* Custom scrollbar for sidebar */
+  aside::-webkit-scrollbar {
+    width: 6px;
+  }
+  aside::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  aside::-webkit-scrollbar-thumb {
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+  }
+  aside::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+  }
+
+  /* Collapsed state overrides - ONLY DESKTOP */
+  @media (min-width: 1024px) {
+    aside.collapsed {
+      width: 72px;
+      padding: 1rem 0.5rem;
+    }
+  }
+
+  /* Submenu open state */
+  .has-submenu.open > .submenu {
+    max-height: 500px;
+  }
+</style>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggle");
+    const headerToggle = document.getElementById("headerToggle");
+    const mobileCloseBtn = document.getElementById("mobileCloseSidebar");
     const COLLAPSED_KEY = "sidebar-collapsed";
 
-    // Restaurar estado colapsado desde localStorage
-    const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === "true";
-    if (isCollapsed && sidebar) {
-      sidebar.classList.add("collapsed");
-    }
-
-    // Manejar clic en botón de colapsar
-    if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener("click", function () {
+    // Función para alternar sidebar
+    function toggleSidebar() {
+        if (!sidebar) return;
         sidebar.classList.toggle("collapsed");
         const nowCollapsed = sidebar.classList.contains("collapsed");
         localStorage.setItem(COLLAPSED_KEY, String(nowCollapsed));
 
         // Actualizar aria-label del botón
-        const label = nowCollapsed ? "Expandir menú" : "Colapsar menú";
-        toggleBtn.setAttribute("aria-label", label);
-        toggleBtn.setAttribute("title", label);
-      });
+        if (toggleBtn) {
+            const label = nowCollapsed ? "Expandir menú" : "Colapsar menú";
+            toggleBtn.setAttribute("aria-label", label);
+            toggleBtn.setAttribute("title", label);
+        }
     }
 
+    // Restaurar estado colapsado desde localStorage (Solo si es desktop)
+    const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === "true";
+    if (isCollapsed && sidebar && window.innerWidth >= 1024) {
+      sidebar.classList.add("collapsed");
+    }
+
+    // Manejar clic en botón de colapsar (Desktop)
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", toggleSidebar);
+    }
+
+    // Manejar clic en el header "MENU"
+    if (headerToggle) {
+        headerToggle.addEventListener("click", toggleSidebar);
+    }
+
+    // Manejar clic en botón de cerrar (Móvil)
+    if (mobileCloseBtn) {
+      mobileCloseBtn.addEventListener("click", function () {
+        // Disparar evento personalizado para que DashboardLayout lo capture
+        const event = new CustomEvent("closeMobileSidebar", { bubbles: true });
+        mobileCloseBtn.dispatchEvent(event);
+
+        // Fallback directo por si acaso
+        const sidebarContainer = document.getElementById("sidebarContainer");
+        const overlay = document.getElementById("sidebarOverlay");
+        const toggleBtn = document.getElementById("mobileMenuToggle");
+
+        if (sidebarContainer)
+          sidebarContainer.classList.add("-translate-x-full");
+        if (overlay) overlay.classList.remove("active");
+        if (toggleBtn) toggleBtn.classList.remove("active");
+      });
+    }
     // Manejar clic en botones de submenú
     document.querySelectorAll(".submenu-toggle").forEach((button) => {
       button.addEventListener("click", function (this: HTMLElement, e: Event) {
@@ -235,8 +406,14 @@ const generateId = (name: string): string => {
         const submenuId = this.getAttribute("data-submenu");
         if (!submenuId || !parentLi) return;
 
+        // AUTO-EXPAND LOGIC:
+        // Si el sidebar está colapsado y se hace clic en un submenú, expandirlo primero
+        if (sidebar && sidebar.classList.contains("collapsed")) {
+            toggleSidebar(); // Use the shared toggle function
+        }
+
         const submenu = document.getElementById(
-          submenuId
+          submenuId,
         ) as HTMLElement | null;
         if (!submenu) return;
 
@@ -244,82 +421,19 @@ const generateId = (name: string): string => {
         document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
           if (openLi !== parentLi) {
             openLi.classList.remove("open");
-            const otherSubmenu = openLi.querySelector(
-              ".submenu"
-            ) as HTMLElement | null;
-            if (otherSubmenu) {
-              otherSubmenu.style.maxHeight = "0";
+            // Also remove active class from toggle button
+            const toggle = openLi.querySelector(".submenu-toggle");
+            if (toggle) {
+              toggle.classList.remove("bg-primary", "text-white");
+              const icon = toggle.querySelector("img");
+              if (icon) icon.classList.remove("brightness-0", "invert");
             }
           }
         });
 
         // Alternar el submenú actual
-        const isOpening = !parentLi.classList.contains("open");
         parentLi.classList.toggle("open");
-
-        if (isOpening) {
-          submenu.style.maxHeight = submenu.scrollHeight + "px";
-        } else {
-          submenu.style.maxHeight = "0";
-        }
       });
-    });
-
-    // Manejar clic en enlaces de navegación
-    document.querySelectorAll("[data-nav-item]").forEach((link) => {
-      link.addEventListener("click", function (this: HTMLElement, e: Event) {
-        // No cerrar el submenú al hacer clic en un subitem
-        e.stopPropagation();
-
-        // Actualizar estado activo visualmente
-        document.querySelectorAll("[data-nav-item]").forEach((item) => {
-          item.classList.remove("active");
-        });
-        this.classList.add("active");
-
-        // Marcar el padre como activo si es un subitem
-        const submenuItem = this.closest(".submenu-item");
-        if (submenuItem) {
-          const parentLi = submenuItem.closest(".has-submenu");
-          if (parentLi) {
-            parentLi.classList.add("open");
-            const submenu = parentLi.querySelector(
-              ".submenu"
-            ) as HTMLElement | null;
-            if (submenu) {
-              submenu.style.maxHeight = submenu.scrollHeight + "px";
-            }
-          }
-        }
-      });
-    });
-
-    // Cerrar submenús al hacer clic fuera del sidebar
-    document.addEventListener("click", function (e: MouseEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target && !target.closest(".sidebar")) {
-        document.querySelectorAll(".has-submenu.open").forEach((openLi) => {
-          openLi.classList.remove("open");
-          const submenu = openLi.querySelector(
-            ".submenu"
-          ) as HTMLElement | null;
-          if (submenu) {
-            submenu.style.maxHeight = "0";
-          }
-        });
-      }
-    });
-
-    // Inicializar submenús abiertos si corresponden a la página actual
-    document.querySelectorAll(".has-submenu").forEach((item) => {
-      const activeSubItem = item.querySelector(".submenu-link.active");
-      if (activeSubItem) {
-        item.classList.add("open");
-        const submenu = item.querySelector(".submenu") as HTMLElement | null;
-        if (submenu) {
-          submenu.style.maxHeight = submenu.scrollHeight + "px";
-        }
-      }
     });
   });
 </script>

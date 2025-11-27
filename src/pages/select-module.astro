@@ -1,13 +1,21 @@
 ---
 import MainLayout from "@/layouts/MainLayout.astro";
 import SelectModuleComponent from "@/components/SelectModule";
+import LoginHeader from "@/components/LoginHeader.astro";
 ---
 
 <MainLayout title="Seleccionar Módulo">
-  <main class="login-page">
-    <div class="login-container">
-      <h1 class="login-title">Elige un módulo</h1>
-      <p class="login-subtitle">Escoge una opción disponible</p>
+  <LoginHeader />
+  <main
+    class="flex-1 flex items-center justify-center p-4 bg-slate-50 min-h-[calc(100vh-80px)]"
+  >
+    <div class="w-full max-w-4xl flex flex-col items-center">
+      <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center">
+        Elige un módulo
+      </h1>
+      <p class="text-slate-500 text-center mb-8 text-lg">
+        Escoge una opción disponible para continuar
+      </p>
       <SelectModuleComponent client:load />
     </div>
   </main>

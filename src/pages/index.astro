@@ -1,37 +1,46 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
-import PublicHeader from '../components/PublicHeader.astro';
+import MainLayout from "../layouts/MainLayout.astro";
+import PublicHeader from "../components/PublicHeader.astro";
 
 const systemDescription = "Sistema de Gestión de Historias Clínicas";
-
 ---
 
 <MainLayout title="Inicio">
   <PublicHeader />
-  <main class="hero-section">
-    <div class="hero-content">
-      <h1 class="center-name">
+  <main class="flex-1 flex items-center justify-center text-center p-8 md:p-16">
+    <div class="max-w-3xl flex flex-col gap-6">
+      <h1 class="text-4xl md:text-6xl font-bold text-slate-900 leading-tight">
         Centro Médico <br /> Urdiales-Espinoza
       </h1>
 
-      <h2 class="system-title">
+      <h2
+        class="text-xl md:text-3xl text-slate-600 font-normal opacity-90 mb-4"
+      >
         {systemDescription}
       </h2>
 
-      <div class="hero-buttons">
-        <a href="/tutorial-video" class="btn btn-secondary">
+      <div
+        class="flex justify-center gap-6 mt-4 flex-col sm:flex-row items-center"
+      >
+        <a
+          href="/tutorial-video"
+          class="inline-flex items-center justify-center gap-3 px-8 py-4 text-base font-semibold text-white bg-slate-800 rounded-xl transition-all hover:bg-slate-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto"
+        >
           <img
             src="/src/icons/play.svg"
-            class="icon icon-scale"
+            class="w-6 h-6 brightness-0 invert"
             alt="Login icon"
           />
           Ver Video Tutorial
         </a>
 
-        <a href="/login" class="btn btn-primary">
+        <a
+          href="/login"
+          class="inline-flex items-center justify-center gap-3 px-8 py-4 text-base font-semibold text-white bg-primary rounded-xl transition-all hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto"
+        >
           <img
             src="/src/icons/medical.svg"
-            class="icon icon-scale"
+            class="w-6 h-6 brightness-0 invert"
             alt="Login icon"
           />
           Empezar Ahora
@@ -40,45 +49,3 @@ const systemDescription = "Sistema de Gestión de Historias Clínicas";
     </div>
   </main>
 </MainLayout>
-
-<style>
-  .hero-section {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 4rem 2rem;
-  }
-  .hero-content {
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  .center-name {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    color: var(--color-dark);
-    margin: 0;
-    line-height: 1.1;
-  }
-  .system-title {
-    font-size: clamp(1.2rem, 2.5vw, 2rem);
-    color: var(--color-dark);
-    opacity: 0.7;
-    font-weight: 400;
-    margin-bottom: 1rem;
-  }
-  .hero-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 1rem;
-  }
-  @media (max-width: 600px) {
-    .hero-buttons {
-      flex-direction: column;
-      align-items: center;
-    }
-  }
-</style>

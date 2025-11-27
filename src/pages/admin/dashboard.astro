@@ -3,15 +3,13 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 ---
 
 <DashboardLayout title="Dashboard Administrador">
-  <div class="hero-content">
-    <h1 class="center-name">Panel de Administración</h1>
-    <p>
+  <div class="flex flex-col items-center justify-center text-center py-12">
+    <h1 class="text-3xl font-bold text-slate-900 mb-4">
+      Panel de Administración
+    </h1>
+    <p class="text-slate-600 max-w-2xl">
       Bienvenido al panel de administración. Aquí se mostrarán las últimas
       actividades, como las historias clínicas recientemente actualizadas.
     </p>
   </div>
 </DashboardLayout>
-
-<style is:global>
-  @import "../../styles/global.css";
-</style>

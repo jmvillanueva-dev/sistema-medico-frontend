@@ -2,73 +2,25 @@
 
 ---
 
-<header class="login-header">
-  <div class="container">
-    <a href="/" class="back-link">
+<header class="w-full py-4 border-b border-slate-200 bg-white">
+  <div class="max-w-7xl mx-auto px-8 flex justify-between items-center md:px-4">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-primary no-underline transition-colors hover:text-primary-600 group"
+    >
       <img
-        class="icon icon-scale icon-translateY"
+        class="w-5 h-5 transition-transform group-hover:-translate-x-1"
         src="/src/icons/arrow-left.svg"
-        alt="Fecha Retroseso "
+        alt="Flecha Retroceso"
       />
-      Regresar al Inicio
+      <span class="font-medium">Regresar al Inicio</span>
     </a>
-    <a href="/" class="logo">
+    <a href="/" class="flex items-center">
       <img
         src="/logo-cm-ue.svg"
         alt="Logo Centro Médico Urdiales-Espinoza"
-        height="40"
+        class="h-10 w-auto"
       />
     </a>
   </div>
 </header>
-
-<style>
-  .login-header {
-    width: 100%;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--color-border-secondary);
-    background-color: var(--color-background);
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .back-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .back-link:hover {
-    color: var(--color-primary);
-  }
-
-  .back-link:hover .icon-translateY {
-    transform: translateX(-5px);
-  
-  }
-
-  @media (max-width: 768px) {
-    .container {
-      padding: 0 1rem;
-    }
-    .logo {
-      display: none;
-    }
-    .placeholder {
-      display: none;
-    }
-    .container {
-      justify-content: flex-start;
-    }
-  }
-</style>

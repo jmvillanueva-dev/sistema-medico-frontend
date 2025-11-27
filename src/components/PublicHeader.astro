@@ -20,98 +20,50 @@ if (userCookie) {
 const isAuthenticated = !!user;
 ---
 
-<header class="main-header">
-  <nav class="navbar">
-    <a href="/" class="logo">
+<header
+  class="w-full sticky top-0 z-[1000] bg-white/80 backdrop-blur-md border-b border-slate-200"
+>
+  <nav
+    class="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 md:px-4"
+  >
+    <a
+      href="/"
+      class="flex items-center gap-2 text-primary no-underline drop-shadow-sm transition-transform hover:scale-[1.02]"
+    >
       <img
         src="/logo-cm-ue.svg"
         alt="Logo Centro Médico Urdiales-Espinoza"
         height="40"
+        class="h-10 w-auto"
       />
-      <div class="logo-name">
-        <span>{logoName.toUpperCase()}</span>
-        <span>CENTRO MÉDICO</span>
+      <div class="flex flex-col leading-tight">
+        <span class="font-normal text-lg tracking-wide"
+          >{logoName.toUpperCase()}</span
+        >
+        <span
+          class="text-slate-900 font-light text-sm text-center tracking-widest"
+          >CENTRO MÉDICO</span
+        >
       </div>
     </a>
 
-    <div class="nav-actions">
-          <a href="/login" class="btn btn-primary nav-login-btn">
-            <img src="/src/icons/user.svg" alt="User icon" width="20px" />
-            Iniciar Sesión
-            <img
-              src="/src/icons/login.svg"
-              class="icon icon-translateX"
-              alt="Login icon"
-            />
-          </a>
-
-
+    <div class="flex gap-3">
+      <a
+        href="/login"
+        class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-primary rounded-xl transition-all hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 group"
+      >
+        <img
+          src="/src/icons/user.svg"
+          alt="User icon"
+          class="w-5 h-5 brightness-0 invert"
+        />
+        Iniciar Sesión
+        <img
+          src="/src/icons/login.svg"
+          class="w-5 h-5 brightness-0 invert transition-transform group-hover:translate-x-1"
+          alt="Login icon"
+        />
+      </a>
     </div>
   </nav>
 </header>
-
-<style>
-  .main-header {
-    width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-
-  .nav-actions {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .main-header {
-    width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-
-  .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    color: var(--color-primary);
-    text-shadow: 1px 1px 2px #08233e32;
-  }
-
-  .logo-name {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .logo-name span {
-    font-weight: 400;
-  }
-
-  .logo-name span:nth-child(2) {
-    color: var(--color-dark);
-    font-weight: 300;
-    text-align: center;
-  }
-
-  .nav-login-btn {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-  }
-
-  /* Media query para pantallas más pequeñas si es necesario */
-  @media (max-width: 768px) {
-    .navbar {
-      padding: 1rem 1rem;
-    }
-  }
-</style>

@@ -1,18 +1,24 @@
 ---
-import MainLayout from "@/layouts/MainLayout.astro";
-import DashboardHeader from "@/components/DashboardHeader.astro";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
 ---
 
-<MainLayout title="Dashboard Médico">
-  <DashboardHeader />
-  <main class="hero-section">
-    <div class="hero-content">
-      <h1 class="center-name">Panel Médico</h1>
-      <p>Aquí irán las historias clínicas, evoluciones, etc.</p>
+<DashboardLayout title="Dashboard Médico" role="medical">
+  <div class="flex flex-col gap-6">
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-6">
+      <h1 class="text-2xl font-bold text-slate-900 mb-2">Panel Médico</h1>
+      <p class="text-slate-600">
+        Bienvenido al panel de gestión médica. Aquí podrás gestionar historias
+        clínicas y pacientes.
+      </p>
     </div>
-  </main>
-</MainLayout>
 
-<style is:global>
-  @import "../../styles/global.css";
-</style>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Tarjeta de Resumen (Ejemplo) -->
+      <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+        <h3 class="font-semibold text-slate-900 mb-2">Pacientes Atendidos</h3>
+        <p class="text-3xl font-bold text-primary">0</p>
+        <p class="text-sm text-slate-500 mt-1">Hoy</p>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
