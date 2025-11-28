@@ -1,7 +1,11 @@
 import api from "./api";
-import type { ApiResponse } from "../types/api";
-import type { CatalogItem } from "../types/patient";
+import type { GroupedCatalogsResponse } from "../types/catalog";
 
-export const getCatalogItems = (catalogName: string) => {
-  return api.get<ApiResponse<CatalogItem[]>>(`/catalogos/${catalogName}/items`);
+/**
+ * Obtiene todos los catálogos agrupados del sistema en una sola petición.
+ * Este endpoint es ideal para cargar todos los catálogos al inicio de la aplicación
+ * y mantenerlos en caché.
+ */
+export const getGroupedCatalogs = () => {
+  return api.get<GroupedCatalogsResponse>("/catalogos/agrupados");
 };

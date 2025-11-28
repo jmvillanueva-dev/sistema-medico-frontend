@@ -1,12 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import adminIcon from "@/icons/user-admin.svg";
 import medicalIcon from "@/icons/clinical.svg";
+import { useCatalogStore } from "@/store/catalogStore";
 
 const SelectModule: React.FC = () => {
+  // Precargar catálogos al montar el componente (después del login)
+  const { loadCatalogs, isLoaded, isLoading } = useCatalogStore();
+
+  useEffect(() => {
+    if (!isLoaded && !isLoading) {
+      loadCatalogs();
+    }
+  }, [loadCatalogs, isLoaded, isLoading]);
+
   return (
     <div className="flex justify-center gap-6 mt-8 flex-wrap">
-      <a 
-        href="/admin/dashboard" 
+      <a
+        href="/admin/dashboard"
         className="group flex flex-col items-center justify-center p-8 rounded-2xl bg-white border border-slate-200 no-underline text-slate-900 transition-all duration-300 w-[240px] h-[200px] shadow-sm hover:-translate-y-1 hover:border-primary hover:shadow-xl hover:shadow-primary/10"
       >
         <div className="p-4 rounded-full bg-blue-50 mb-4 transition-colors group-hover:bg-primary/10">
@@ -22,8 +32,8 @@ const SelectModule: React.FC = () => {
           Administrador
         </span>
       </a>
-      <a 
-        href="/medical/dashboard" 
+      <a
+        href="/medical/dashboard"
         className="group flex flex-col items-center justify-center p-8 rounded-2xl bg-white border border-slate-200 no-underline text-slate-900 transition-all duration-300 w-[240px] h-[200px] shadow-sm hover:-translate-y-1 hover:border-primary hover:shadow-xl hover:shadow-primary/10"
       >
         <div className="p-4 rounded-full bg-blue-50 mb-4 transition-colors group-hover:bg-primary/10">

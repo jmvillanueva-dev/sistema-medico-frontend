@@ -11,8 +11,8 @@ import {
   MAX_LOGIN_ATTEMPTS,
   LOCKOUT_DURATION_MS,
 } from "@/utils/lockout";
+import { useCatalogStore } from "./catalogStore";
 import type { User } from "@/types/user";
-
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -70,7 +70,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await api.post("/auth/login", credentials);
 
       const { data: responseData } = response.data;
-      const { accessToken, refreshToken, email, roles, employeeId, name, lastName } = responseData;
+      const {
+        accessToken,
+        refreshToken,
+        email,
+        roles,
+        employeeId,
+        name,
+        lastName,
+      } = responseData;
 
       const user: User = { email, roles, employeeId, name, lastName };
 
@@ -142,6 +150,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     Cookies.remove("auth-token");
     Cookies.remove("auth-refresh-token");
     Cookies.remove("auth-user");
+
+    // Limpiar catálogos cacheados al cerrar sesión
+    useCatalogStore.getState().clearCatalogs();
+
     set({ isAuthenticated: false, user: null });
     window.location.href = "/login";
   },

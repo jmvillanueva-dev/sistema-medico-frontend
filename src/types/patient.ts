@@ -92,6 +92,7 @@ export interface Patient {
 }
 
 export interface PatientRequest {
+  // --- DATOS BÁSICOS (Obligatorios marcados con *) ---
   cedula: string;
   primerNombre: string;
   segundoNombre?: string;
@@ -99,35 +100,40 @@ export interface PatientRequest {
   apellidoMaterno?: string;
   email?: string;
   telefono?: string;
-  grupoSanguineoId: string;
-  fechaNacimiento: string;
-  lugarNacimiento: string;
+  grupoSanguineoId?: string; // Optional in JSON example, but good to have
+
+  // --- DATOS DEMOGRÁFICOS ---
+  fechaNacimiento: string; // YYYY-MM-DD
+  lugarNacimiento?: string;
   generoId: string;
-  nacionalidad: string;
-  grupoCulturalId: string;
-  estadoCivilId: string;
-  nivelInstruccionId: string;
-  direccion: string;
-  provinciaId: string;
-  canton: string;
-  parroquia: string;
-  
-  // Occupation
+  nacionalidad?: string;
+  grupoCulturalId?: string;
+  estadoCivilId?: string;
+  nivelInstruccionId?: string;
+
+  // --- UBICACIÓN GEOGRÁFICA ---
+  direccion?: string;
+  provinciaId?: string;
+  canton?: string;
+  parroquia?: string;
+
+  // --- OCUPACIÓN ---
   ocupacionId?: string;
   nombreEmpresa?: string;
   cargo?: string;
   telefonoEmpresa?: string;
   direccionEmpresa?: string;
-  fechaInicio?: string;
-  fechaFin?: string;
+  fechaInicio?: string; // YYYY-MM-DD
+  fechaFin?: string | null; // YYYY-MM-DD
   actual?: boolean;
 
-  // Information Source
+  // --- FUENTE DE INFORMACIÓN ---
   fuenteInformacionId?: string;
   nombreFuenteInfo?: string;
   telefonoFuenteInfo?: string;
   observacionesFuente?: string;
 
+  // --- LISTAS ---
   contactosEmergencia: EmergencyContact[];
   antecedentesClinicos: ClinicalHistory[];
 }
