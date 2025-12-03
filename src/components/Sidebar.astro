@@ -88,6 +88,9 @@ const menuItems = allMenuItems
       if (item.name === "Pacientes") {
         return { ...item, href: "/medical/patients" };
       }
+      if (item.name === "Historias Clínicas") {
+        return { ...item, href: "/medical/clinical-records" };
+      }
     }
     return item;
   });
