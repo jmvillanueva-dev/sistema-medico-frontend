@@ -58,6 +58,11 @@ const allMenuItems: MenuItem[] = [
     href: "/admin/clinical-records",
     icon: "/src/icons/system/clipboard.svg",
   },
+  {
+    name: "Evoluciones Médicas",
+    href: "/medical/evolutions",
+    icon: "/src/icons/system/file-text.svg",
+  },
 ];
 
 // Filtrar items basado en el rol
@@ -74,7 +79,7 @@ const menuItems = allMenuItems
         // Pero como el array es estático, mejor creamos una copia modificada si es necesario
         return true;
       }
-      return ["Pacientes", "Historias Clínicas"].includes(item.name);
+      return ["Pacientes", "Historias Clínicas", "Evoluciones Médicas"].includes(item.name);
     }
 
     return false;

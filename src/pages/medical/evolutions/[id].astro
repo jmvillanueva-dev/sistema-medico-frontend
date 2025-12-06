@@ -1,0 +1,16 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import MedicalEvolutionDetail from "../../../components/MedicalEvolution/MedicalEvolutionDetail";
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/medical/patients");
+}
+---
+
+<DashboardLayout title="Detalle de Evolución">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <MedicalEvolutionDetail client:load evolutionId={id} />
+  </div>
+</DashboardLayout>
