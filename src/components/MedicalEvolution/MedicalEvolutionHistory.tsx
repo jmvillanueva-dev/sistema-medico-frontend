@@ -101,15 +101,26 @@ export default function MedicalEvolutionHistory({
   const [fechaFin, setFechaFin] = useState("");
   const [isFilterActive, setIsFilterActive] = useState(false);
 
-  // Load stored filters on mount
+  // Load stored filters on mount - but clear them when viewing a specific HC
   useEffect(() => {
+    // If viewing evolutions for a specific Historia Clínica, clear any stored filters
+    // to avoid confusion with mixed results
+    if (historiaClinicaId) {
+      clearStoredFilters();
+      setFechaInicio("");
+      setFechaFin("");
+      setIsFilterActive(false);
+      return;
+    }
+    
+    // Only restore filters when viewing global evolutions (no historiaClinicaId)
     const storedFilters = getStoredFilters();
     if (storedFilters.isActive) {
       setFechaInicio(storedFilters.fechaInicio);
       setFechaFin(storedFilters.fechaFin);
       setIsFilterActive(true);
     }
-  }, []);
+  }, [historiaClinicaId]);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -359,7 +370,7 @@ export default function MedicalEvolutionHistory({
                   )}
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Médico</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Completitud</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>

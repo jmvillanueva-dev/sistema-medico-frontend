@@ -188,8 +188,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                             }`}
                             onClick={() => {
                                 if (record.totalEvoluciones > 0) {
-                                    // Future navigation: /medical/evolutions?patientId=${record.pacienteId}
-                                    toast.info(`Ver ${record.totalEvoluciones} evoluciones de ${record.pacienteNombreCompleto}`);
+                                    window.location.href = `/medical/evolutions?historiaClinicaId=${record.id}`;
                                 }
                             }}
                         >

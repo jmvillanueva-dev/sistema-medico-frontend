@@ -21,8 +21,7 @@ export default function ClinicalRecordDetailsModal({
   if (!record) return null;
 
   const handleViewEvolutions = () => {
-     // Future navigation: /medical/evolutions?patientId=${record.pacienteId}
-     toast.info(`Navegando a evoluciones de ${record.pacienteNombreCompleto}...`);
+     window.location.href = `/medical/evolutions?historiaClinicaId=${record.id}`;
   };
 
   return (
