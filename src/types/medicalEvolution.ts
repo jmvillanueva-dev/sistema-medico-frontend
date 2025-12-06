@@ -121,13 +121,25 @@ export interface EvolucionMedicaUpdateRequest extends Partial<EvolucionMedicaReq
 
 export interface EvolucionMedicaResumen {
   id: string;
+  historiaClinicaId: string;
+  numeroHistoriaClinica: string;
+  empleadoId: string;
+  empleadoNombreCompleto: string;
   fechaConsulta: string;
   tipoConsulta: string;
-  empleadoNombreCompleto: string;
-  numeroHistoriaClinica: string;
+  estado: string;
+  fechaCreacion?: string;
+  // Section completion indicators
+  tieneMotivoAtencion: boolean;
   tieneSignosVitales: boolean;
+  tieneAntecedentesIncidente: boolean;
+  tieneValoracionClinica: boolean;
   tieneDiagnosticos: boolean;
-  tieneTratamientos: boolean;
+  tienePlanesTratamiento: boolean;
+  tieneExamenesSolicitados: boolean;
+  tieneLocalizacionLesiones: boolean;
+  tieneEmergenciaObstetrica: boolean; // Optional section, not required
+  tieneAltaMedica: boolean;
 }
 
 export interface EvolucionMedicaFilter {

@@ -18,9 +18,26 @@ interface MedicalEvolutionFormProps {
   initialData?: EvolucionMedica;
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialTab?: string; // Allow setting initial tab from props
 }
 
-type Tab = "general" | "valoracion" | "diagnostico" | "examenes" | "obstetrica" | "alta";
+// 7 main tabs matching the summary table circles + obstetrica (optional, inside alta section)
+type Tab = "motivo" | "signos" | "valoracion" | "diagnostico" | "tratamiento" | "examenes" | "alta";
+
+// Helper to get initial tab from URL or props
+const getInitialTab = (initialTab?: string): Tab => {
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    if (tabParam && ["motivo", "signos", "valoracion", "diagnostico", "tratamiento", "examenes", "alta"].includes(tabParam)) {
+      return tabParam as Tab;
+    }
+  }
+  if (initialTab && ["motivo", "signos", "valoracion", "diagnostico", "tratamiento", "examenes", "alta"].includes(initialTab)) {
+    return initialTab as Tab;
+  }
+  return "motivo";
+};
 
 export default function MedicalEvolutionForm({
   historiaClinicaId,
@@ -29,6 +46,7 @@ export default function MedicalEvolutionForm({
   initialData,
   onSuccess,
   onCancel,
+  initialTab,
 }: MedicalEvolutionFormProps) {
   // Default navigation handlers
   const handleSuccess = () => {
@@ -49,7 +67,7 @@ export default function MedicalEvolutionForm({
     }
   };
 
-  const [activeTab, setActiveTab] = useState<Tab>("general");
+  const [activeTab, setActiveTab] = useState<Tab>(() => getInitialTab(initialTab));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(!!evolutionId && !initialData);
   const [loadedData, setLoadedData] = useState<EvolucionMedica | undefined>(initialData);
@@ -125,7 +143,7 @@ export default function MedicalEvolutionForm({
   const onSubmitForm = async (data: EvolucionMedicaRequest) => {
     if (!data.motivoAtencion?.motivoConsulta) {
       toast.error("El motivo de consulta es obligatorio.");
-      setActiveTab("general");
+      setActiveTab("motivo");
       return;
     }
 
@@ -185,12 +203,13 @@ export default function MedicalEvolutionForm({
   }
 
   const tabs = [
-    { id: "general", label: "1. General" },
-    { id: "valoracion", label: "2. Valoración" },
-    { id: "diagnostico", label: "3. Diagnóstico" },
-    { id: "examenes", label: "4. Exámenes" },
-    { id: "obstetrica", label: "5. Obstétrica" },
-    { id: "alta", label: "6. Alta" },
+    { id: "motivo", label: "1. Motivo" },
+    { id: "signos", label: "2. Signos Vitales" },
+    { id: "valoracion", label: "3. Valoración" },
+    { id: "diagnostico", label: "4. Diagnósticos" },
+    { id: "tratamiento", label: "5. Tratamiento" },
+    { id: "examenes", label: "6. Exámenes" },
+    { id: "alta", label: "7. Alta" },
   ];
 
   // Calculate progress based on filled fields
@@ -268,8 +287,8 @@ export default function MedicalEvolutionForm({
       <div className="p-6 overflow-y-auto flex-1">
         <form className="max-w-5xl mx-auto space-y-8">
           
-          {/* TAB: GENERAL */}
-          {activeTab === "general" && (
+          {/* TAB: MOTIVO */}
+          {activeTab === "motivo" && (
             <div className="space-y-8 animate-fadeIn">
               {/* Datos Básicos */}
               <section>
@@ -330,7 +349,22 @@ export default function MedicalEvolutionForm({
                 </div>
               </section>
 
-              {/* Signos Vitales */}
+              {/* Navigation buttons */}
+              <div className="flex justify-end pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signos")}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: SIGNOS VITALES */}
+          {activeTab === "signos" && (
+            <div className="space-y-8 animate-fadeIn">
               <section>
                 <h3 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-1 h-6 bg-primary rounded-full"></span>
@@ -349,6 +383,24 @@ export default function MedicalEvolutionForm({
                   <Input label="IMC" type="number" disabled {...register("signosVitales.imc")} className="bg-slate-100" />
                 </div>
               </section>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("motivo")}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("valoracion")}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
+                >
+                  Siguiente →
+                </button>
+              </div>
             </div>
           )}
 
@@ -407,6 +459,24 @@ export default function MedicalEvolutionForm({
                   ))}
                 </div>
               </section>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signos")}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("diagnostico")}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
+                >
+                  Siguiente →
+                </button>
+              </div>
             </div>
           )}
 
@@ -478,6 +548,29 @@ export default function MedicalEvolutionForm({
                 </div>
               </section>
 
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("valoracion")}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("tratamiento")}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: TRATAMIENTO */}
+          {activeTab === "tratamiento" && (
+            <div className="space-y-8 animate-fadeIn">
               {/* Planes de Tratamiento */}
               <section>
                 <div className="flex justify-between items-center mb-4">
@@ -538,6 +631,24 @@ export default function MedicalEvolutionForm({
                   )}
                 </div>
               </section>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("diagnostico")}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("examenes")}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
+                >
+                  Siguiente →
+                </button>
+              </div>
             </div>
           )}
 
@@ -606,63 +717,7 @@ export default function MedicalEvolutionForm({
               <div className="flex justify-between pt-4 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("diagnostico")}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
-                >
-                  ← Anterior
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("obstetrica")}
-                  className="px-4 py-2 text-sm font-medium text-primary hover:underline"
-                >
-                  Siguiente →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB: OBSTETRICA */}
-          {activeTab === "obstetrica" && (
-            <div className="space-y-8 animate-fadeIn">
-              {/* Emergencia Obstétrica */}
-              <section>
-                <h3 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-pink-500 rounded-full"></span>
-                  Emergencia Obstétrica
-                </h3>
-                <p className="text-sm text-slate-500 mb-4">Complete esta sección solo si aplica a la consulta.</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <Input label="Gestas Previas" type="number" {...register("emergenciaObstetrica.gestasPrevias", { valueAsNumber: true })} />
-                  <Input label="Partos Previos" type="number" {...register("emergenciaObstetrica.partosPrevios", { valueAsNumber: true })} />
-                  <Input label="Abortos Previos" type="number" {...register("emergenciaObstetrica.abortosPrevios", { valueAsNumber: true })} />
-                  <Input label="Semanas Gestación" type="number" {...register("emergenciaObstetrica.semanasGestacion", { valueAsNumber: true })} />
-                  <Input label="FUM (Última Menstruación)" type="date" {...register("emergenciaObstetrica.fum")} />
-                  <Input label="FPP (Probable Parto)" type="date" {...register("emergenciaObstetrica.fpp")} />
-                  <Input label="Latidos Fetales" {...register("emergenciaObstetrica.latidosFetales")} placeholder="Ej: 140 lpm" />
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Presentación</label>
-                    <select
-                      {...register("emergenciaObstetrica.presentacion")}
-                      className="w-full h-11 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="CEFALICA">Cefálica</option>
-                      <option value="PODALICA">Podálica</option>
-                      <option value="TRANSVERSA">Transversa</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Input label="Dinámica Uterina" {...register("emergenciaObstetrica.dinamicaUterina")} placeholder="Ej: Contracciones cada 5 minutos" />
-                  </div>
-                </div>
-              </section>
-
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("examenes")}
+                  onClick={() => setActiveTab("tratamiento")}
                   className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
                 >
                   ← Anterior
@@ -746,11 +801,52 @@ export default function MedicalEvolutionForm({
                 </div>
               </section>
 
+              {/* Emergencia Obstétrica - Sección Opcional Colapsable */}
+              <section className="border border-pink-200 rounded-xl overflow-hidden">
+                <details className="group">
+                  <summary className="flex items-center justify-between p-4 bg-pink-50 cursor-pointer hover:bg-pink-100 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1 h-6 bg-pink-500 rounded-full"></span>
+                      <h3 className="text-base font-semibold text-slate-900">Emergencia Obstétrica</h3>
+                      <span className="text-xs font-medium text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full">Opcional</span>
+                    </div>
+                    <span className="text-pink-500 group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="p-4 bg-white">
+                    <p className="text-sm text-slate-500 mb-4">Complete esta sección solo si aplica a la consulta.</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <Input label="Gestas Previas" type="number" {...register("emergenciaObstetrica.gestasPrevias" as any, { valueAsNumber: true })} />
+                      <Input label="Partos Previos" type="number" {...register("emergenciaObstetrica.partosPrevios" as any, { valueAsNumber: true })} />
+                      <Input label="Abortos Previos" type="number" {...register("emergenciaObstetrica.abortosPrevios" as any, { valueAsNumber: true })} />
+                      <Input label="Semanas Gestación" type="number" {...register("emergenciaObstetrica.semanasGestacion" as any, { valueAsNumber: true })} />
+                      <Input label="FUM (Última Menstruación)" type="date" {...register("emergenciaObstetrica.fum" as any)} />
+                      <Input label="FPP (Probable Parto)" type="date" {...register("emergenciaObstetrica.fpp" as any)} />
+                      <Input label="Latidos Fetales" {...register("emergenciaObstetrica.latidosFetales" as any)} placeholder="Ej: 140 lpm" />
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Presentación</label>
+                        <select
+                          {...register("emergenciaObstetrica.presentacion" as any)}
+                          className="w-full h-11 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="CEFALICA">Cefálica</option>
+                          <option value="PODALICA">Podálica</option>
+                          <option value="TRANSVERSA">Transversa</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <Input label="Dinámica Uterina" {...register("emergenciaObstetrica.dinamicaUterina" as any)} placeholder="Ej: Contracciones cada 5 minutos" />
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </section>
+
               {/* Navigation buttons */}
               <div className="flex justify-between pt-4 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("obstetrica")}
+                  onClick={() => setActiveTab("examenes")}
                   className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
                 >
                   ← Anterior

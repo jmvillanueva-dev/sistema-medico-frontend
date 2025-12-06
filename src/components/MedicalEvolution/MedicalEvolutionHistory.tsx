@@ -81,6 +81,21 @@ export default function MedicalEvolutionHistory({
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthReady, setIsAuthReady] = useState(false);
 
+  // View mode state - 'table' or 'cards'
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+
+  // Detect mobile screen on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768;
+      setViewMode(isMobile ? 'cards' : 'table');
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Date filter state - initialize from storage
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
@@ -228,6 +243,29 @@ export default function MedicalEvolutionHistory({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center bg-slate-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                title="Vista de tabla"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                title="Vista de tarjetas"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+            </div>
+            
             {onCreate && (
               <button 
                 onClick={onCreate}
@@ -307,7 +345,10 @@ export default function MedicalEvolutionHistory({
       {!loading && !error && evolutions.length === 0 && renderEmptyState()}
       
       {!loading && !error && evolutions.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <>
+          {/* TABLE VIEW */}
+          {viewMode === 'table' && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -318,7 +359,7 @@ export default function MedicalEvolutionHistory({
                   )}
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Médico</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Indicadores</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Completitud</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
@@ -342,17 +383,89 @@ export default function MedicalEvolutionHistory({
                       {ev.empleadoNombreCompleto}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      <div className="flex gap-2">
-                        {ev.tieneSignosVitales && (
-                          <span className="w-2 h-2 rounded-full bg-green-500" title="Signos Vitales"></span>
-                        )}
-                        {ev.tieneDiagnosticos && (
-                          <span className="w-2 h-2 rounded-full bg-red-500" title="Diagnósticos"></span>
-                        )}
-                        {ev.tieneTratamientos && (
-                          <span className="w-2 h-2 rounded-full bg-purple-500" title="Tratamientos"></span>
-                        )}
-                      </div>
+                      {(() => {
+                        // Calculate completion (7 sections, excluding Obstétrica)
+                        const sections = [
+                          ev.tieneMotivoAtencion,
+                          ev.tieneSignosVitales,
+                          ev.tieneValoracionClinica,
+                          ev.tieneDiagnosticos,
+                          ev.tienePlanesTratamiento,
+                          ev.tieneExamenesSolicitados,
+                          ev.tieneAltaMedica
+                        ];
+                        const completed = sections.filter(Boolean).length;
+                        const total = sections.length;
+                        const percentage = Math.round((completed / total) * 100);
+                        
+                        // Determine color based on progress
+                        let barColor = 'bg-red-400'; // 0% - Pendiente
+                        let statusText = 'Pendiente';
+                        if (percentage === 100) {
+                          barColor = 'bg-green-500';
+                          statusText = 'Completada';
+                        } else if (percentage > 0) {
+                          barColor = 'bg-amber-400';
+                          statusText = 'En progreso';
+                        }
+
+                        return (
+                          <div className="flex flex-col gap-1.5 min-w-[120px]">
+                            {/* Progress Bar */}
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full ${barColor} rounded-full transition-all duration-300`}
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-medium text-slate-500 w-8">{percentage}%</span>
+                            </div>
+                            {/* Circles - Double click to navigate to edit with specific tab */}
+                            <div className="flex items-center gap-1">
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`1. Motivo de Atención: ${ev.tieneMotivoAtencion ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=motivo`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`2. Signos Vitales: ${ev.tieneSignosVitales ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=signos`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`3. Valoración Clínica: ${ev.tieneValoracionClinica ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=valoracion`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`4. Diagnósticos: ${ev.tieneDiagnosticos ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=diagnostico`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`5. Tratamiento: ${ev.tienePlanesTratamiento ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=tratamiento`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                                title={`6. Exámenes: ${ev.tieneExamenesSolicitados ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=examenes`}
+                              />
+                              <span 
+                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300'}`}
+                                title={`7. Alta Médica: ${ev.tieneAltaMedica ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
+                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=alta`}
+                              />
+                            </div>
+                            {/* Status Label */}
+                            <span className={`text-xs font-medium ${percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500'}`}>
+                              {statusText} ({completed}/{total})
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                       <div className="flex justify-end gap-2">
@@ -378,6 +491,149 @@ export default function MedicalEvolutionHistory({
             </table>
           </div>
         </div>
+          )}
+
+          {/* CARDS VIEW */}
+          {viewMode === 'cards' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredEvolutions.map((ev) => {
+                // Calculate completion for this evolution
+                const sections = [
+                  ev.tieneMotivoAtencion,
+                  ev.tieneSignosVitales,
+                  ev.tieneValoracionClinica,
+                  ev.tieneDiagnosticos,
+                  ev.tienePlanesTratamiento,
+                  ev.tieneExamenesSolicitados,
+                  ev.tieneAltaMedica
+                ];
+                const completed = sections.filter(Boolean).length;
+                const total = sections.length;
+                const percentage = Math.round((completed / total) * 100);
+                const statusText = percentage === 100 ? 'Completada' : percentage > 0 ? 'En progreso' : 'Pendiente';
+                
+                return (
+                  <div 
+                    key={ev.id} 
+                    className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow flex flex-col"
+                  >
+                    {/* Card Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                          ev.tipoConsulta === 'EMERGENCIA' ? 'bg-red-50 text-red-700' : 
+                          ev.tipoConsulta === 'CONTROL' ? 'bg-blue-50 text-blue-700' : 
+                          'bg-green-50 text-green-700'
+                        }`}>
+                          {ev.tipoConsulta}
+                        </span>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {new Date(ev.fechaConsulta).toLocaleDateString('es-EC', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleViewDetail(ev.id)}
+                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="Ver Detalles"
+                        >
+                          <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(ev.id)}
+                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="Editar"
+                        >
+                          <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Historia Clínica (if not in patient context) */}
+                    {!historiaClinicaId && (
+                      <div className="text-sm font-medium text-slate-800 mb-2">
+                        HC: {ev.numeroHistoriaClinica}
+                      </div>
+                    )}
+
+                    {/* Médico */}
+                    <div className="text-sm text-slate-600 mb-3 flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      {ev.empleadoNombreCompleto}
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-auto pt-3 border-t border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-medium ${
+                          percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500'
+                        }`}>
+                          {statusText} ({completed}/{total})
+                        </span>
+                        <span className="text-xs text-slate-500">{percentage}%</span>
+                      </div>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all ${
+                            percentage === 100 ? 'bg-green-500' : percentage > 0 ? 'bg-amber-400' : 'bg-red-400'
+                          }`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+
+                      {/* Completion Circles */}
+                      <div className="flex items-center justify-center gap-1.5 mt-3">
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`1. Motivo: ${ev.tieneMotivoAtencion ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=motivo`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`2. Signos: ${ev.tieneSignosVitales ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=signos`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`3. Valoración: ${ev.tieneValoracionClinica ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=valoracion`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`4. Diagnósticos: ${ev.tieneDiagnosticos ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=diagnostico`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`5. Tratamiento: ${ev.tienePlanesTratamiento ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=tratamiento`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
+                          title={`6. Exámenes: ${ev.tieneExamenesSolicitados ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=examenes`}
+                        />
+                        <span 
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300'}`}
+                          title={`7. Alta: ${ev.tieneAltaMedica ? '✓' : '○'}`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=alta`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
