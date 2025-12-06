@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 import ArrowLeftIcon from "@/icons/system/arrow-left.svg";
 import PrinterIcon from "@/icons/system/printer.svg";
+import EditIcon from "@/icons/system/edit-fill.svg";
 
 interface MedicalEvolutionDetailProps {
   evolutionId: string;
@@ -20,6 +21,11 @@ export default function MedicalEvolutionDetail({ evolutionId, onBack }: MedicalE
       window.history.back();
     }
   };
+
+  const handleEdit = () => {
+    window.location.href = `/medical/evolutions/edit/${evolutionId}`;
+  };
+
   const [evolution, setEvolution] = useState<EvolucionMedica | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,13 +80,22 @@ export default function MedicalEvolutionDetail({ evolutionId, onBack }: MedicalE
           </button>
           <h2 className="text-lg font-bold text-slate-800">Detalle de Evolución</h2>
         </div>
-        <button
-          onClick={handlePrint}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-        >
-          <img src={PrinterIcon.src} alt="Imprimir" className="w-4 h-4" />
-          Imprimir
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleEdit}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+            Editar
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <img src={PrinterIcon.src} alt="Imprimir" className="w-4 h-4" />
+            Imprimir
+          </button>
+        </div>
       </div>
 
       {/* Content - Printable */}
