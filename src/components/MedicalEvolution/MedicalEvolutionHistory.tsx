@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { getEvolucionesByHistoriaClinica, getEvolucionesByEmpleado, getEvolucionesByFilter } from "../../services/medicalEvolutionService";
+import { getClinicalRecordById } from "../../services/clinicalRecordService";
+import { getPatientById } from "../../services/patientService";
 import type { EvolucionMedicaResumen } from "../../types/medicalEvolution";
+import type { ClinicalRecord } from "../../types/clinicalRecord";
+import type { Patient } from "../../types/patient";
+import PatientFormModal from "../PatientFormModal";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,6 +14,7 @@ import EditIcon from "@/icons/system/edit.svg";
 import EyeIcon from "@/icons/system/eye.svg";
 import FileIcon from "@/icons/system/file-text.svg";
 import PlusIcon from "@/icons/system/add-circle.svg";
+import UserIcon from "@/icons/system/user-single.svg";
 
 // Storage key for persisting filters
 const FILTER_STORAGE_KEY = "medical_evolutions_filter";
@@ -100,6 +106,76 @@ export default function MedicalEvolutionHistory({
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [isFilterActive, setIsFilterActive] = useState(false);
+
+  // Clinical Record context info (when viewing evolutions for a specific HC)
+  const [clinicalRecordInfo, setClinicalRecordInfo] = useState<ClinicalRecord | null>(null);
+  const [loadingHcInfo, setLoadingHcInfo] = useState(false);
+
+  // Fetch clinical record info when historiaClinicaId is present
+  useEffect(() => {
+    if (historiaClinicaId) {
+      setLoadingHcInfo(true);
+      getClinicalRecordById(historiaClinicaId)
+        .then((response) => {
+          if (response.data.success && response.data.data) {
+            setClinicalRecordInfo(response.data.data);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching clinical record info:", err);
+        })
+        .finally(() => {
+          setLoadingHcInfo(false);
+        });
+    } else {
+      setClinicalRecordInfo(null);
+    }
+  }, [historiaClinicaId]);
+
+  // Patient modal state
+  const [isPatientModalOpen, setPatientModalOpen] = useState(false);
+  const [patientData, setPatientData] = useState<Patient | null>(null);
+  const [loadingPatient, setLoadingPatient] = useState(false);
+
+  // Handle opening patient modal - fetch full patient data first
+  const handleOpenPatientModal = async () => {
+    if (!clinicalRecordInfo?.pacienteId) {
+      toast.error("No se encontró el ID del paciente");
+      return;
+    }
+
+    setLoadingPatient(true);
+    try {
+      const response = await getPatientById(clinicalRecordInfo.pacienteId);
+      if (response.data.success && response.data.data) {
+        setPatientData(response.data.data);
+        setPatientModalOpen(true);
+      } else {
+        toast.error("No se pudo cargar los datos del paciente");
+      }
+    } catch (err) {
+      console.error("Error fetching patient:", err);
+      toast.error("Error al cargar los datos del paciente");
+    } finally {
+      setLoadingPatient(false);
+    }
+  };
+
+  // Handle patient save (refresh HC info)
+  const handlePatientSave = async () => {
+    setPatientModalOpen(false);
+    // Refresh clinical record info to update displayed name if it changed
+    if (historiaClinicaId) {
+      try {
+        const response = await getClinicalRecordById(historiaClinicaId);
+        if (response.data.success && response.data.data) {
+          setClinicalRecordInfo(response.data.data);
+        }
+      } catch (err) {
+        console.error("Error refreshing HC info:", err);
+      }
+    }
+  };
 
   // Load stored filters on mount - but clear them when viewing a specific HC
   useEffect(() => {
@@ -239,6 +315,67 @@ export default function MedicalEvolutionHistory({
 
   return (
     <div className="w-full space-y-6">
+      {/* Clinical Record Context Banner - shown when viewing evolutions for a specific HC */}
+      {historiaClinicaId && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4">
+          {loadingHcInfo ? (
+            <div className="flex items-center gap-3 text-slate-500">
+              <div className="w-5 h-5 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm">Cargando información de la Historia Clínica...</span>
+            </div>
+          ) : clinicalRecordInfo ? (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                  {clinicalRecordInfo.pacienteNombreCompleto?.charAt(0) || '?'}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                      HC: {clinicalRecordInfo.numeroHistoriaClinica}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-lg mt-1">
+                    {clinicalRecordInfo.pacienteNombreCompleto}
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Cédula: {clinicalRecordInfo.pacienteCedula} • {evolutions.length} evolución{evolutions.length !== 1 ? 'es' : ''} registrada{evolutions.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleOpenPatientModal}
+                  disabled={loadingPatient}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-70"
+                >
+                  {loadingPatient ? (
+                    <div className="w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <img src={UserIcon.src} alt="Paciente" className="w-4 h-4" />
+                  )}
+                  Ver Paciente
+                </button>
+                <a
+                  href="/medical/clinical-records"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Volver a HC
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="text-slate-500 text-sm">
+              No se pudo cargar la información de la Historia Clínica
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -646,6 +783,14 @@ export default function MedicalEvolutionHistory({
           )}
         </>
       )}
+
+      {/* Patient Modal */}
+      <PatientFormModal
+        isOpen={isPatientModalOpen}
+        onClose={() => setPatientModalOpen(false)}
+        onSave={handlePatientSave}
+        patient={patientData}
+      />
     </div>
   );
 }
