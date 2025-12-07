@@ -14,6 +14,10 @@ export const getClinicalRecordByPatientId = (patientId: string) => {
   return api.get<ApiResponse<ClinicalRecord>>(`/historias-clinicas/paciente/${patientId}`);
 };
 
+export const getClinicalRecordByNumber = (numeroHistoriaClinica: string) => {
+  return api.get<ApiResponse<ClinicalRecord>>(`/historias-clinicas/numero/${numeroHistoriaClinica}`);
+};
+
 export const createClinicalRecord = (data: ClinicalRecordRequest) => {
   return api.post<ApiResponse<ClinicalRecord>>("/historias-clinicas", data);
 };
