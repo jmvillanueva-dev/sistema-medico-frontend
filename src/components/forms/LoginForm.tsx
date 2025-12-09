@@ -206,8 +206,18 @@ const LoginForm: React.FC = () => {
       >
         {loading ? "Ingresando..." : "Ingresar"}
       </Button>
+
+      <div className="text-center">
+        <a
+          href="/auth/forgot-password"
+          className="text-sm text-primary hover:text-blue-700 hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </a>
+      </div>
     </form>
   );
 };
 
 export default LoginForm;
+

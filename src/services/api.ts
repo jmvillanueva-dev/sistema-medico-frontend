@@ -16,8 +16,18 @@ const api = axios.create({
 // Interceptor para añadir el token a las solicitudes
 api.interceptors.request.use(
   (config) => {
-    // No añadir token a la ruta de login
-    if (config.url?.endsWith("/auth/login")) {
+    // No añadir token a las rutas públicas de autenticación
+    const publicAuthRoutes = [
+      "/auth/login",
+      "/auth/forgot-password",
+      "/auth/reset-password",
+    ];
+    
+    const isPublicRoute = publicAuthRoutes.some((route) =>
+      config.url?.endsWith(route)
+    );
+
+    if (isPublicRoute) {
       return config;
     }
 
