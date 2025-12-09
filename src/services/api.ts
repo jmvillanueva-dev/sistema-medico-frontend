@@ -27,7 +27,10 @@ api.interceptors.request.use(
       config.url?.endsWith(route)
     );
 
-    if (isPublicRoute) {
+    // Verificar si es una ruta de verificación (incluye token en la URL)
+    const isVerifyRoute = config.url?.includes("/auth/verify/");
+
+    if (isPublicRoute || isVerifyRoute) {
       return config;
     }
 

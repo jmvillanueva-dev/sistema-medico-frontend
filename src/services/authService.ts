@@ -26,3 +26,14 @@ export const forgotPassword = async (email: string) => {
 export const resetPassword = async (token: string, nuevaPassword: string) => {
   return api.post("/auth/reset-password", { token, nuevaPassword });
 };
+
+/**
+ * Verifica la cuenta de un nuevo usuario usando el token de verificación.
+ * 
+ * @param token - Token de verificación recibido por email
+ * @returns Promise con la respuesta de la API
+ */
+export const verifyAccount = async (token: string) => {
+  return api.post(`/auth/verify/${token}`);
+};
+
