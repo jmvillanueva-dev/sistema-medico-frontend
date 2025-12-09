@@ -6,6 +6,7 @@ import type {
   EvolucionMedicaUpdateRequest,
   EvolucionMedicaResumen,
   EvolucionMedicaFilter,
+  EvolucionReporteDiario,
   Diagnostico,
   PlanTratamiento,
   SignosVitales
@@ -71,4 +72,15 @@ export const getSignosVitales = (evolucionId: string) => {
 
 export const updateSignosVitales = (evolucionId: string, signos: SignosVitales) => {
   return api.put<ApiResponse<SignosVitales>>(`${BASE_URL}/${evolucionId}/signos-vitales`, signos);
+};
+
+// Daily Report
+/**
+ * Get daily report of medical evolutions
+ * @param fecha - Optional date in format YYYY-MM-DD. If not provided, uses current date
+ * @returns Promise with list of evolution summaries for the specified date
+ */
+export const getDailyReport = (fecha?: string) => {
+  const params = fecha ? `?fecha=${fecha}` : '';
+  return api.get<ApiResponse<EvolucionReporteDiario[]>>(`${BASE_URL}/reporte-diario${params}`);
 };

@@ -1,15 +1,19 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import DailyEvolutionReport from "@/components/DailyEvolutionReport";
 ---
 
 <DashboardLayout title="Dashboard Administrador">
-  <div class="flex flex-col items-center justify-center text-center py-12">
-    <h1 class="text-3xl font-bold text-slate-900 mb-4">
-      Panel de Administración
-    </h1>
-    <p class="text-slate-600 max-w-2xl">
-      Bienvenido al panel de administración. Aquí se mostrarán las últimas
-      actividades, como las historias clínicas recientemente actualizadas.
-    </p>
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 mb-2">
+        Panel de Administración
+      </h1>
+      <p class="text-slate-600">
+        Resumen diario de evoluciones médicas registradas en el sistema
+      </p>
+    </div>
+
+    <DailyEvolutionReport client:load />
   </div>
 </DashboardLayout>

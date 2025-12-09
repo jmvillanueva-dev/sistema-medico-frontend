@@ -149,3 +149,17 @@ export interface EvolucionMedicaFilter {
   fechaFin?: string;
   estado?: string;
 }
+
+/**
+ * Interface for daily report of medical evolutions
+ * Lightweight version with essential information only
+ */
+export interface EvolucionReporteDiario {
+  evolucionId: string;
+  fechaConsulta: string; // ISO 8601 Instant
+  historiaClinicaId: string;
+  numeroHistoriaClinica: string;
+  pacienteId: string;
+  pacienteNombreCompleto: string;
+  empleadoNombreCompleto: string;
+}
