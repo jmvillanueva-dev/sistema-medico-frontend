@@ -2,14 +2,50 @@
 import MainLayout from "@/layouts/MainLayout.astro";
 import DashboardHeader from "@/components/DashboardHeader.astro";
 import ProfileManager from "@/components/ProfileManager.tsx";
+
+const userCookie = Astro.cookies.get("auth-user")?.value;
+let userRoles: string[] = [];
+if (userCookie) {
+  try {
+    const user = JSON.parse(userCookie);
+    userRoles = user?.roles || [];
+  } catch (e) {
+    userRoles = [];
+  }
+}
+
+// Determine dashboard URL based on user's role
+const dashboardUrl = userRoles.includes("ROLE_ADMIN")
+  ? "/admin/dashboard"
+  : "/medical/dashboard";
 ---
 
 <MainLayout title="Mi Perfil">
   <DashboardHeader />
   <div class="profile-page-container">
     <header class="profile-header">
-      <h1>Mi Perfil</h1>
-      <p>Gestiona la información de tu cuenta, correo y contraseña.</p>
+      <div class="header-with-nav">
+        <a href={dashboardUrl} class="back-button">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+          </svg>
+          <span>Volver al Dashboard</span>
+        </a>
+        <div>
+          <h1>Mi Perfil</h1>
+          <p>Gestiona la información de tu cuenta, correo y contraseña.</p>
+        </div>
+      </div>
     </header>
     <main class="profile-main-content">
       <ProfileManager client:load />
@@ -19,7 +55,7 @@ import ProfileManager from "@/components/ProfileManager.tsx";
 
 <style>
   .profile-page-container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 2rem auto;
     padding: 0 2rem;
   }
@@ -27,6 +63,39 @@ import ProfileManager from "@/components/ProfileManager.tsx";
   .profile-header {
     margin-bottom: 2.5rem;
     text-align: left;
+  }
+
+  .header-with-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #64748b;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: fit-content;
+  }
+
+  .back-button:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(-2px);
+  }
+
+  .back-button svg {
+    flex-shrink: 0;
   }
 
   .profile-header h1 {
@@ -50,10 +119,18 @@ import ProfileManager from "@/components/ProfileManager.tsx";
 
   @media (max-width: 768px) {
     .profile-page-container {
-        padding: 0 1rem;
+      padding: 0 1rem;
+      max-width: 100%;
     }
     .profile-main-content {
-        padding: 1.5rem;
+      padding: 1.5rem;
+    }
+    .back-button {
+      font-size: 0.8125rem;
+      padding: 0.4rem 0.875rem;
+    }
+    .profile-header h1 {
+      font-size: 1.875rem;
     }
   }
 </style>

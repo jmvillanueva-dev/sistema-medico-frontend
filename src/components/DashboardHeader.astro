@@ -14,9 +14,13 @@ const userName = user ? `${user.name} ${user.lastName}` : "Usuario";
 const userEmail = user?.email || "";
 ---
 
-<header class="w-full py-3 sticky top-0 z-[1000] shrink-0">
+<header
+  id="dashboard-header"
+  class="w-full py-3 sticky top-0 z-[1000] shrink-0 transition-all duration-300 border-b border-slate-200"
+>
   <div
-    class="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center bg-white rounded-full border-b border-slate-200 shadow-sm md:px-4 md:rounded-none md:border-b md:shadow-none md:bg-transparent"
+    id="header-content"
+    class="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center transition-all duration-300"
   >
     <a href="/admin/dashboard" class="flex items-center">
       <img
@@ -38,3 +42,25 @@ const userEmail = user?.email || "";
     </div>
   </div>
 </header>
+
+<script>
+  // Script para manejar el scroll del header
+  const header = document.getElementById("dashboard-header");
+  const headerContent = document.getElementById("header-content");
+
+  function updateHeader() {
+    if (window.scrollY > 20) {
+      // Cuando se hace scroll
+      header?.classList.add("bg-white/95", "backdrop-blur-sm");
+      headerContent?.classList.add("bg-white", "rounded-full");
+    } else {
+      // En la parte superior (transparente)
+      header?.classList.remove("bg-white/95", "backdrop-blur-sm");
+      headerContent?.classList.remove("bg-white", "rounded-full");
+    }
+  }
+
+  // Ejecutar al cargar y al hacer scroll
+  updateHeader();
+  window.addEventListener("scroll", updateHeader);
+</script>

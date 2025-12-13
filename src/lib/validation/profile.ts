@@ -2,26 +2,24 @@ import * as z from "zod";
 
 /**
  * Esquema de validación para actualizar datos del perfil.
- * Los campos son opcionales, ya que el usuario puede querer actualizar solo uno.
+ * Todos los campos editables son requeridos para prevenir datos vacíos.
  */
 export const updateProfileSchema = z.object({
   nombre: z
     .string()
     .trim()
+    .min(1, { message: "El nombre es requerido" })
     .regex(/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]+$/, {
       message: "El nombre solo puede contener letras y espacios",
-    })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    }),
 
   apellido: z
     .string()
     .trim()
+    .min(1, { message: "El apellido es requerido" })
     .regex(/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]+$/, {
       message: "El apellido solo puede contener letras y espacios",
-    })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    }),
 
   cedula: z
     .string()
@@ -33,27 +31,26 @@ export const updateProfileSchema = z.object({
   especialidad: z
     .string()
     .trim()
+    .min(1, { message: "La especialidad es requerida" })
     .regex(/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]+$/, {
       message: "La especialidad solo puede contener letras y espacios",
-    })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    }),
 
   telefono: z
     .string()
     .trim()
+    .min(1, { message: "El teléfono es requerido" })
     .regex(/^\d+$/, { message: "El teléfono solo puede contener números" })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    .min(7, { message: "El teléfono debe tener al menos 7 dígitos" })
+    .max(15, { message: "El teléfono no puede tener más de 15 dígitos" }),
 
   codigoProfesional: z
     .string()
     .trim()
-    .regex(/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]+$/, {
-      message: "El código profesional solo puede contener letras y espacios",
-    })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    .min(1, { message: "El código profesional es requerido" })
+    .regex(/^[a-zA-Z0-9\s]+$/, {
+      message: "El código profesional solo puede contener letras, números y espacios",
+    }),
 });
 type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
 

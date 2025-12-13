@@ -47,7 +47,7 @@ const ProfileManager: React.FC = () => {
           </button>
         ))}
       </nav>
-      <div className="flex-grow max-w-full md:max-w-2xl">{renderContent()}</div>
+      <div className="flex-grow max-w-full md:max-w-5xl min-h-[500px]">{renderContent()}</div>
     </div>
   );
 };

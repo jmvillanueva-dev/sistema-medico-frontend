@@ -45,6 +45,17 @@ const UpdatePasswordForm: React.FC = () => {
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
+        {/* Instruction Box */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+            className="flex-shrink-0 text-green-600  mt-0.5">
+            <path fill="currentColor" d="M12 1.67c.955 0 1.845.467 2.39 1.247l.105.16l8.114 13.548a2.914 2.914 0 0 1-2.307 4.363l-.195.008H3.882a2.914 2.914 0 0 1-2.582-4.2l.099-.185l8.11-13.538A2.91 2.91 0 0 1 12 1.67M12 11h-1l-.117.007a1 1 0 0 0 0 1.986L11 13v3l.007.117a1 1 0 0 0 .876.876L12 17h1l.117-.007a1 1 0 0 0 .876-.876L14 16l-.007-.117a1 1 0 0 0-.764-.857l-.112-.02L13 15v-3l-.007-.117a1 1 0 0 0-.876-.876zm.01-3l-.127.007a1 1 0 0 0 0 1.986L12 10l.127-.007a1 1 0 0 0 0-1.986z" />
+          </svg>
+          <div className="text-sm text-green-900">
+            <p className="font-semibold mb-1">Actualizar contraseña</p>
+            <p className="text-green-800">Tu contraseña debe tener al menos 6 caracteres. Por seguridad, se cerrará tu sesión después del cambio.</p>
+          </div>
+        </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="contrasenaActual" className="text-sm font-medium text-slate-900">Contraseña Actual</label>
           <input
@@ -54,7 +65,14 @@ const UpdatePasswordForm: React.FC = () => {
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
           {errors.contrasenaActual && (
-            <p className="text-xs text-red-600 font-medium">{errors.contrasenaActual.message}</p>
+            <p className="text-xs text-red-600 font-medium flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{errors.contrasenaActual.message}</span>
+            </p>
           )}
         </div>
         <div className="flex flex-col gap-2">
@@ -66,7 +84,14 @@ const UpdatePasswordForm: React.FC = () => {
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
           {errors.nuevaContrasena && (
-            <p className="text-xs text-red-600 font-medium">{errors.nuevaContrasena.message}</p>
+            <p className="text-xs text-red-600 font-medium flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{errors.nuevaContrasena.message}</span>
+            </p>
           )}
         </div>
         <div className="pt-4 border-t border-slate-100 flex justify-end">
