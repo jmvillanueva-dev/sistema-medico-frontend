@@ -31,7 +31,7 @@ const ProfileManager: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
-      <ToastContainer />
+      <ToastContainer style={{ zIndex: 99999 }} />
       <nav className="flex flex-row md:flex-col gap-2 w-full md:w-[200px] shrink-0 overflow-x-auto md:overflow-visible pb-4 md:pb-0 border-b-2 md:border-b-0 md:border-r border-slate-100 md:pr-4">
         {navLinks.map((link) => (
           <button
