@@ -10,7 +10,7 @@ export const ProfileBackButton: React.FC = () => {
   }, [activeModule]);
 
   return (
-    <a href={href} className="back-button group">
+    <a href={href} className="text-sm back-button group flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 w-fit hover:bg-slate-200 transition-colors">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"
@@ -25,7 +25,7 @@ export const ProfileBackButton: React.FC = () => {
       >
         <path d="M19 12H5M12 19l-7-7 7-7"></path>
       </svg>
-      <span>Volver al Dashboard {activeModule === 'medical' ? '(Médico)' : '(Admin)'}</span>
+      <span>Volver al Dashboard</span>
     </a>
   );
 };

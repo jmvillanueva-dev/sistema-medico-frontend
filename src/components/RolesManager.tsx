@@ -84,7 +84,7 @@ export default function RolesManager() {
     try {
       await deleteRole(roleToDelete.id);
       setRoles(roles.filter((r) => r.id !== roleToDelete.id));
-      toast.success(`✅ Rol "${roleToDelete.nombre}" eliminado correctamente.`);
+      toast.success(`Rol "${roleToDelete.nombre}" eliminado correctamente.`);
       setDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (err) {

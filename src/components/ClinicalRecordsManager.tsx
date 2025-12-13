@@ -506,7 +506,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
               }}
               className="w-full sm:w-48 h-10 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
-              <option value="all">Filtrar resultados</option>
+              <option value="all">Filtrar los resultados</option>
               <option value="numero">N° Historia Clínica</option>
               <option value="paciente">Buscar Paciente</option>
             </select>
