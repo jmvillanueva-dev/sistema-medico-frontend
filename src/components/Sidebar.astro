@@ -1,6 +1,7 @@
 ---
 const { url } = Astro;
-const { role = "admin" } = Astro.props;
+const { role = "admin", roles = [] } = Astro.props;
+import { SidebarFooter } from "@/components/SidebarFooter";
 
 // Definir tipos para TypeScript
 interface MenuItemBase {
@@ -320,6 +321,8 @@ const generateId = (name: string): string => {
       }
     </ul>
   </nav>
+
+  <SidebarFooter client:visible roles={roles} />
 </aside>
 
 <style>

@@ -1,5 +1,6 @@
 ---
 import UserDropdown from "@/components/UserDropdown.tsx";
+import { ModuleSwitcher } from "@/components/ui/ModuleSwitcher";
 
 const userCookie = Astro.cookies.get("auth-user")?.value;
 let user = null;
@@ -22,14 +23,20 @@ const userEmail = user?.email || "";
     id="header-content"
     class="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center transition-all duration-300"
   >
-    <a href="/admin/dashboard" class="flex items-center">
-      <img
-        src="/logo-cm-ue.svg"
-        alt="Logo Centro Médico Urdiales-Espinoza"
-        height="32"
-        class="block h-8 w-auto"
-      />
-    </a>
+    <div class="flex items-center gap-6">
+      <a href="/admin/dashboard" class="flex items-center">
+        <img
+          src="/logo-cm-ue.svg"
+          alt="Logo Centro Médico Urdiales-Espinoza"
+          height="32"
+          class="block h-8 w-auto"
+        />
+      </a>
+
+      <div class="hidden md:block">
+        <ModuleSwitcher client:load roles={user?.roles} />
+      </div>
+    </div>
 
     <div class="flex items-center gap-4">
       <div class="flex flex-col text-right justify-center hidden md:flex">

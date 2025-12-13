@@ -10,6 +10,17 @@ interface Props {
 }
 
 const { title, role = "admin" } = Astro.props;
+
+const userCookie = Astro.cookies.get("auth-user")?.value;
+let userRoles: string[] = [];
+if (userCookie) {
+  try {
+    const user = JSON.parse(userCookie);
+    userRoles = user?.roles || [];
+  } catch (e) {
+    userRoles = [];
+  }
+}
 ---
 
 <!doctype html>
@@ -53,7 +64,7 @@ const { title, role = "admin" } = Astro.props;
         id="sidebarContainer"
         class="h-full flex-shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-[1200] w-[260px] -translate-x-full lg:translate-x-0 lg:relative lg:w-auto"
       >
-        <Sidebar role={role} />
+        <Sidebar role={role} roles={userRoles} />
       </div>
 
       <!-- Main Content -->
