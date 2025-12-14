@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDebounce } from "../hooks/useDebounce";
 import { getPatients, deletePatient, searchPatients } from "../services/patientService";
 import type { Patient } from "../types/patient";
 import ConfirmationModal from "./ConfirmationModal";
@@ -11,7 +12,7 @@ import DeleteIcon from "@/icons/system/delete.svg";
 import SearchIcon from "@/icons/system/search.svg";
 
 // Placeholder for PatientFormModal
-import PatientFormModal from "./PatientFormModal"; 
+import PatientFormModal from "./PatientFormModal";
 
 interface PatientsManagerProps {
   canDelete?: boolean;
@@ -23,10 +24,11 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+
   // Pagination state (simple for now, can be expanded if backend supports metadata)
   const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true); // Assuming true initially
+  const [hasMore, setHasMore] = useState(true);
 
   // Modal states
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -38,15 +40,16 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
     try {
       setLoading(true);
       let response;
-      if (searchTerm) {
-        response = await searchPatients(searchTerm);
+      // Use debouncedSearchTerm instead of searchTerm
+      if (debouncedSearchTerm) {
+        response = await searchPatients(debouncedSearchTerm);
+        // Reset page if needed when searching, though currently page is 0 based on logic below
       } else {
-        response = await getPatients(page, 10); // Page size 10
+        response = await getPatients(page, 10);
       }
-      
+
       if (response.data.success) {
-         setPatients(response.data.data);
-         // Logic to determine if there are more pages would go here based on response metadata
+        setPatients(response.data.data);
       }
       setError(null);
     } catch (err) {
@@ -60,7 +63,7 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
 
   useEffect(() => {
     fetchPatients();
-    
+
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setViewMode("grid");
@@ -72,12 +75,17 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [page, searchTerm]); // Refetch when page or search changes
+  }, [page, debouncedSearchTerm]); // Listen to debouncedSearchTerm
+
+  // Reset page when search term changes (real-time typing)
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(0); // Reset to first page on search
-    fetchPatients();
+    // Optional: force immediate search or just let debounce handle it
+    // With debounce, this handles "Enter" key not doing a full page reload
   };
 
   const handleCreate = () => {
@@ -100,7 +108,7 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
     try {
       await deletePatient(patientToDelete.id);
       setPatients(patients.filter((p) => p.id !== patientToDelete.id));
-      toast.success(`✅ Paciente ${patientToDelete.primerNombre} ${patientToDelete.apellidoPaterno} eliminado correctamente.`);
+      toast.success(`✅ Paciente ${ patientToDelete.primerNombre } ${ patientToDelete.apellidoPaterno } eliminado correctamente.`);
       setDeleteModalOpen(false);
       setPatientToDelete(null);
     } catch (err) {
@@ -171,12 +179,11 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
                     <td className="px-6 py-4 text-sm text-slate-600">{patient.telefono}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{patient.canton}, {patient.provincia?.nombre}</td>
                     <td className="px-6 py-4 text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                        patient.estaActivo 
-                          ? "bg-green-50 text-green-700 border-green-200" 
-                          : "bg-red-50 text-red-700 border-red-200"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${patient.estaActivo ? "bg-green-600" : "bg-red-600"}`}></span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${ patient.estaActivo
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-red-50 text-red-700 border-red-200"
+                        }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${ patient.estaActivo ? "bg-green-600" : "bg-red-600" }`}></span>
                         {patient.estaActivo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
@@ -213,15 +220,14 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
           {patients.map((patient) => (
             <div key={patient.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group relative">
               <div className="absolute top-4 right-4">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                  patient.estaActivo 
-                    ? "bg-green-50 text-green-700 border-green-200" 
-                    : "bg-red-50 text-red-700 border-red-200"
-                }`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${ patient.estaActivo
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-red-50 text-red-700 border-red-200"
+                  }`}>
                   {patient.estaActivo ? "Activo" : "Inactivo"}
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
                   {patient.primerNombre.charAt(0)}{patient.apellidoPaterno.charAt(0)}
@@ -231,7 +237,7 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
                   <p className="text-sm text-slate-500">{patient.cedula}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Email:</span>
@@ -248,22 +254,22 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
               </div>
 
               <div className="flex gap-2 pt-4 border-t border-slate-100">
-                 <button
-                      className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
-                      onClick={() => handleEdit(patient)}
-                    >
-                      <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
-                      <span>Editar</span>
-                    </button>
-                    {canDelete && (
-                      <button
-                        className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                        onClick={() => handleDelete(patient)}
-                      >
-                        <img src={DeleteIcon.src} alt="Eliminar" className="w-4 h-4" />
-                        <span>Eliminar</span>
-                      </button>
-                    )}
+                <button
+                  className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
+                  onClick={() => handleEdit(patient)}
+                >
+                  <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+                  <span>Editar</span>
+                </button>
+                {canDelete && (
+                  <button
+                    className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                    onClick={() => handleDelete(patient)}
+                  >
+                    <img src={DeleteIcon.src} alt="Eliminar" className="w-4 h-4" />
+                    <span>Eliminar</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -287,33 +293,46 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
         theme="light"
         style={{ zIndex: 99999 }}
       />
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Gestión de Pacientes</h1>
           <p className="text-slate-500 text-sm mt-1">Administra la información de los pacientes</p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <form onSubmit={handleSearch} className="relative w-full sm:w-64">
             <input
               type="text"
               placeholder="Buscar paciente..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+              className="w-full pl-10 pr-10 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <img 
-              src={SearchIcon.src} 
-              alt="Buscar" 
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" 
+            <img
+              src={SearchIcon.src}
+              alt="Buscar"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
             />
+            {searchTerm && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+                onClick={() => setSearchTerm("")}
+                title="Limpiar búsqueda"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
           </form>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
-            <button 
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none" 
+            <button
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none"
               onClick={handleCreate}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -336,7 +355,7 @@ export default function PatientsManager({ canDelete = false }: PatientsManagerPr
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         title="Confirmar Eliminación"
-        message={`¿Estás seguro de que deseas eliminar a ${patientToDelete?.primerNombre} ${patientToDelete?.apellidoPaterno}? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar a ${ patientToDelete?.primerNombre } ${ patientToDelete?.apellidoPaterno }? Esta acción no se puede deshacer.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalOpen(false)}
         confirmButtonText="Sí, eliminar"
