@@ -33,3 +33,7 @@ export const updateClinicalRecord = (id: string, data: Partial<ClinicalRecordReq
 export const deleteClinicalRecord = (id: string) => {
   return api.delete<ApiResponse<void>>(`/historias-clinicas/${id}`);
 };
+
+export const searchClinicalRecordsByDate = (fechaInicio: string, fechaFin: string) => {
+  return api.get<ApiResponse<ClinicalRecord[]>>(`/historias-clinicas/buscar-por-fecha?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+};

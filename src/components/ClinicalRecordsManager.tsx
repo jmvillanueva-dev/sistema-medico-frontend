@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getClinicalRecords, deleteClinicalRecord, getClinicalRecordByNumber, getClinicalRecordByPatientId } from "../services/clinicalRecordService";
+import { getClinicalRecords, deleteClinicalRecord, getClinicalRecordByNumber, getClinicalRecordByPatientId, searchClinicalRecordsByDate } from "../services/clinicalRecordService";
 import { searchPatients } from "../services/patientService";
 import type { ClinicalRecord } from "../types/clinicalRecord";
 import type { Patient } from "../types/patient";
@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import EditIcon from "@/icons/system/edit.svg";
 import DeleteIcon from "@/icons/system/delete.svg";
 import SearchIcon from "@/icons/system/search.svg";
-import FileIcon from "@/icons/system/file-text.svg"; 
+import FileIcon from "@/icons/system/file-text.svg";
 import EyeIcon from "@/icons/system/eye.svg";
 
 interface ClinicalRecordsManagerProps {
@@ -26,7 +26,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const [page, setPage] = useState(0);
   // const [hasMore, setHasMore] = useState(true); // Backend pagination support needed
 
@@ -39,7 +39,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   const [detailsRecord, setDetailsRecord] = useState<ClinicalRecord | null>(null);
 
   // Advanced search states
-  const [searchType, setSearchType] = useState<'all' | 'numero' | 'paciente'>('all');
+  const [searchType, setSearchType] = useState<'all' | 'numero' | 'paciente' | 'fecha'>('all');
   const [advancedSearchTerm, setAdvancedSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<ClinicalRecord | null>(null);
@@ -50,6 +50,9 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   const [foundPatients, setFoundPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isSearchingPatients, setIsSearchingPatients] = useState(false);
+
+  // Date search states
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   const handleViewDetails = (record: ClinicalRecord) => {
     setDetailsRecord(record);
@@ -62,9 +65,9 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
       // Note: Search functionality for records might need backend support (e.g., search by patient name)
       // For now, we fetch all and filter client-side or assume backend search if implemented
       const response = await getClinicalRecords(page, 10);
-      
+
       if (response.data.success) {
-         setRecords(response.data.data);
+        setRecords(response.data.data);
       }
       setError(null);
     } catch (err) {
@@ -78,7 +81,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
 
   useEffect(() => {
     fetchRecords();
-    
+
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setViewMode("grid");
@@ -90,7 +93,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [page]); 
+  }, [page]);
 
   const filteredRecords = records.filter((record) => {
     if (!searchTerm) return true;
@@ -140,11 +143,11 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
         setSearchResult(response.data.data);
         toast.success('Historia clínica encontrada');
       } else {
-        toast.info(`${patient.primerNombre} ${patient.apellidoPaterno} no tiene historia clínica registrada`);
+        toast.info(`${ patient.primerNombre } ${ patient.apellidoPaterno } no tiene historia clínica registrada`);
       }
     } catch (err: any) {
       if (err.response?.status === 404) {
-        toast.info(`${patient.primerNombre} ${patient.apellidoPaterno} no tiene historia clínica registrada`);
+        toast.info(`${ patient.primerNombre } ${ patient.apellidoPaterno } no tiene historia clínica registrada`);
       } else {
         toast.error('Error al buscar la historia clínica');
         console.error(err);
@@ -157,7 +160,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   // Advanced search handler (for numero search)
   const handleAdvancedSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (searchType === 'numero') {
       if (!advancedSearchTerm.trim()) {
         toast.warning('Ingrese el número de historia clínica');
@@ -189,6 +192,41 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     }
   };
 
+  // Date search handler
+  const handleDateSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dateRange.start || !dateRange.end) {
+      toast.warning('Seleccione ambas fechas');
+      return;
+    }
+
+    setIsSearching(true);
+    setHasSearched(true);
+    setSearchResult(null);
+    // Clear list to show only results if needed, but here we might want to replace the main list or show a separate result list
+    // The current UI pattern shows a single result in "searchResult" for patient/number search, but date search returns a list.
+    // We should probably update the main 'records' list or handle it similarly.
+    // For consistency with current pattern which seems to handle single results specially, let's see.
+    // Actually, the requirement implies filtering the main list.
+
+    try {
+      const response = await searchClinicalRecordsByDate(dateRange.start, dateRange.end);
+      if (response.data.success) {
+        setRecords(response.data.data);
+        if (response.data.data.length === 0) {
+          toast.info('No se encontraron historias en ese rango de fechas');
+        } else {
+          toast.success(`Se encontraron ${ response.data.data.length } historias clínicas`);
+        }
+      }
+    } catch (err) {
+      toast.error('Error al buscar por fechas');
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   // Clear search and show all records
   const handleClearSearch = () => {
     setAdvancedSearchTerm('');
@@ -198,6 +236,8 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     setPatientSearchTerm('');
     setFoundPatients([]);
     setSelectedPatient(null);
+    setDateRange({ start: '', end: '' });
+    fetchRecords(); // Reload initial data
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -281,38 +321,37 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                 {filteredRecords.map((record) => (
                   <tr key={record.id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                        {record.numeroHistoriaClinica}
+                      {record.numeroHistoriaClinica}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                        {record.pacienteNombreCompleto || "Sin Datos"}
+                      {record.pacienteNombreCompleto || "Sin Datos"}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                        {record.pacienteCedula || "-"}
+                      {record.pacienteCedula || "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                        {record.fechaCreacion ? new Date(record.fechaCreacion).toLocaleDateString() : "-"}
+                      {record.fechaCreacion ? new Date(record.fechaCreacion).toLocaleDateString() : "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                        <button 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-                                record.totalEvoluciones > 0 
-                                ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer" 
-                                : "bg-slate-50 text-slate-500 border-slate-200 cursor-default"
-                            }`}
-                            onClick={() => {
-                                if (record.totalEvoluciones > 0) {
-                                    window.location.href = `/medical/evolutions?historiaClinicaId=${record.id}`;
-                                }
-                            }}
-                        >
-                            <span className="font-semibold">Total: {record.totalEvoluciones}</span>
-                            {record.totalEvoluciones > 0 && (
-                                <>
-                                    <span className="w-px h-3 bg-current opacity-30 mx-0.5"></span>
-                                    <span className="font-bold hover:underline">Ver</span>
-                                </>
-                            )}
-                        </button>
+                      <button
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${ record.totalEvoluciones > 0
+                          ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer"
+                          : "bg-slate-50 text-slate-500 border-slate-200 cursor-default"
+                          }`}
+                        onClick={() => {
+                          if (record.totalEvoluciones > 0) {
+                            window.location.href = `/medical/evolutions?historiaClinicaId=${ record.id }`;
+                          }
+                        }}
+                      >
+                        <span className="font-semibold">Total: {record.totalEvoluciones}</span>
+                        {record.totalEvoluciones > 0 && (
+                          <>
+                            <span className="w-px h-3 bg-current opacity-30 mx-0.5"></span>
+                            <span className="font-bold hover:underline">Ver</span>
+                          </>
+                        )}
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-sm text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -353,10 +392,10 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRecords.map((record) => (
             <div key={record.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group relative flex flex-col">
-              
+
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold shrink-0">
-                    <img src={FileIcon.src} alt="Historia" className="w-6 h-6" />
+                  <img src={FileIcon.src} alt="Historia" className="w-6 h-6" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-slate-900 truncate">Historia #{record.numeroHistoriaClinica}</h3>
@@ -365,7 +404,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-3 mb-5 flex-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Cédula:</span>
@@ -377,53 +416,52 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                 </div>
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-slate-500">Evoluciones:</span>
-                  <button 
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-                        record.totalEvoluciones > 0 
-                        ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer" 
-                        : "bg-slate-50 text-slate-500 border-slate-200 cursor-default"
-                    }`}
+                  <button
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors border ${ record.totalEvoluciones > 0
+                      ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer"
+                      : "bg-slate-50 text-slate-500 border-slate-200 cursor-default"
+                      }`}
                     onClick={() => {
-                        if (record.totalEvoluciones > 0) {
-                            toast.info(`Ver ${record.totalEvoluciones} evoluciones de ${record.pacienteNombreCompleto}`);
-                        }
+                      if (record.totalEvoluciones > 0) {
+                        toast.info(`Ver ${ record.totalEvoluciones } evoluciones de ${ record.pacienteNombreCompleto }`);
+                      }
                     }}
                   >
                     <span className="font-semibold">Total: {record.totalEvoluciones}</span>
                     {record.totalEvoluciones > 0 && (
-                        <>
-                            <span className="w-px h-3 bg-current opacity-30 mx-0.5"></span>
-                            <span className="font-bold hover:underline">Ver</span>
-                        </>
+                      <>
+                        <span className="w-px h-3 bg-current opacity-30 mx-0.5"></span>
+                        <span className="font-bold hover:underline">Ver</span>
+                      </>
                     )}
                   </button>
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4 border-t border-slate-100 mt-auto">
-                 <button
-                      className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
-                      onClick={() => handleViewDetails(record)}
-                    >
-                      <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
-                      <span>Ver</span>
-                    </button>
-                 <button
-                      className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
-                      onClick={() => handleEdit(record)}
-                    >
-                      <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
-                      <span>Editar</span>
-                    </button>
-                    {canDelete && (
-                      <button
-                        className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                        onClick={() => handleDelete(record)}
-                      >
-                        <img src={DeleteIcon.src} alt="Eliminar" className="w-4 h-4" />
-                        <span>Eliminar</span>
-                      </button>
-                    )}
+                <button
+                  className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
+                  onClick={() => handleViewDetails(record)}
+                >
+                  <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
+                  <span>Ver</span>
+                </button>
+                <button
+                  className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
+                  onClick={() => handleEdit(record)}
+                >
+                  <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+                  <span>Editar</span>
+                </button>
+                {canDelete && (
+                  <button
+                    className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                    onClick={() => handleDelete(record)}
+                  >
+                    <img src={DeleteIcon.src} alt="Eliminar" className="w-4 h-4" />
+                    <span>Eliminar</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -447,13 +485,13 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
         theme="light"
         style={{ zIndex: 99999 }}
       />
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Historias Clínicas</h1>
           <p className="text-slate-500 text-sm mt-1">Gestión de historias clínicas de pacientes</p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <form onSubmit={handleSearch} className="relative w-full sm:w-64">
             <input
@@ -463,17 +501,17 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <img 
-              src={SearchIcon.src} 
-              alt="Buscar" 
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" 
+            <img
+              src={SearchIcon.src}
+              alt="Buscar"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
             />
           </form>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
-            <button 
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none" 
+            <button
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none"
               onClick={handleCreate}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -489,12 +527,22 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
       {/* Advanced Search Panel */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="flex-shrink-0">
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Buscar por</label>
+          <div className="flex-shrink-0 relative group">
+            <label className="block text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1">
+              Buscar por
+              {/* General Info Tooltip */}
+              <span className="text-slate-400 hover:text-blue-500 cursor-help transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+              </span>
+            </label>
             <select
               value={searchType}
               onChange={(e) => {
-                const newType = e.target.value as 'all' | 'numero' | 'paciente';
+                const newType = e.target.value as 'all' | 'numero' | 'paciente' | 'fecha';
                 setSearchType(newType);
                 // Clear search values when changing type (but not the type itself)
                 setAdvancedSearchTerm('');
@@ -503,15 +551,28 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                 setPatientSearchTerm('');
                 setFoundPatients([]);
                 setSelectedPatient(null);
+                setDateRange({ start: '', end: '' });
+                if (newType === 'all') fetchRecords();
               }}
               className="w-full sm:w-48 h-10 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
               <option value="all">Filtrar los resultados</option>
               <option value="numero">N° Historia Clínica</option>
               <option value="paciente">Buscar Paciente</option>
+              <option value="fecha">Rango de Fechas</option>
             </select>
+
+            {/* Contextual Tooltip based on selection */}
+            <div className="absolute top-full left-0 mt-2 w-64 p-3 bg-white rounded-lg shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="text-xs text-slate-600">
+                {searchType === 'all' && "Filtra los resultados visibles en la tabla por texto."}
+                {searchType === 'numero' && "Busca una historia clínica específica por su número único."}
+                {searchType === 'paciente' && "Busca una historia clínica asociada a un paciente."}
+                {searchType === 'fecha' && "Muestra historias clínicas creadas dentro de un rango de fechas."}
+              </div>
+            </div>
           </div>
-          
+
           {/* Filtro local */}
           {searchType === 'all' && (
             <div className="flex-1">
@@ -613,6 +674,62 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
               </div>
             </form>
           )}
+
+          {/* Búsqueda por rango de fechas */}
+          {searchType === 'fecha' && (
+            <form onSubmit={handleDateSearch} className="flex-1 flex gap-2">
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Fecha Inicio</label>
+                  <input
+                    type="date"
+                    className="w-full h-10 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Fecha Fin</label>
+                  <input
+                    type="date"
+                    className="w-full h-10 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 self-end">
+                <button
+                  type="submit"
+                  disabled={isSearching}
+                  className="inline-flex items-center justify-center gap-2 px-4 h-10 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70"
+                >
+                  {isSearching ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  )}
+                  Buscar
+                </button>
+                {hasSearched && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="inline-flex items-center justify-center gap-2 px-4 h-10 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Patient Search Results List */}
@@ -668,7 +785,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                     Ver Detalles
                   </button>
                   <button
-                    onClick={() => window.location.href = `/medical/evolutions?historiaClinicaId=${searchResult.id}`}
+                    onClick={() => window.location.href = `/medical/evolutions?historiaClinicaId=${ searchResult.id }`}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors"
                   >
                     Ver Evoluciones
@@ -681,8 +798,8 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <span className="text-sm font-medium">
-                  {selectedPatient 
-                    ? `${selectedPatient.primerNombre} ${selectedPatient.apellidoPaterno} no tiene historia clínica registrada.` 
+                  {selectedPatient
+                    ? `${ selectedPatient.primerNombre } ${ selectedPatient.apellidoPaterno } no tiene historia clínica registrada.`
                     : 'No se encontró ninguna historia clínica con ese criterio.'}
                 </span>
               </div>
@@ -701,7 +818,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         title="Confirmar Eliminación"
-        message={`¿Estás seguro de que deseas eliminar la historia clínica #${recordToDelete?.numeroHistoriaClinica}? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar la historia clínica #${ recordToDelete?.numeroHistoriaClinica }? Esta acción no se puede deshacer.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalOpen(false)}
         confirmButtonText="Sí, eliminar"
@@ -721,8 +838,8 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
         onClose={() => setDetailsModalOpen(false)}
         record={detailsRecord}
         onEdit={(record) => {
-            setDetailsModalOpen(false);
-            handleEdit(record);
+          setDetailsModalOpen(false);
+          handleEdit(record);
         }}
       />
     </div>
