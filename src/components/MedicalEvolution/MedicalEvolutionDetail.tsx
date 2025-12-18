@@ -81,7 +81,8 @@ export default function MedicalEvolutionDetail({
     if (onBack) {
       onBack();
     } else {
-      window.location.href = "/medical/evolutions";
+      // Use history.back() to preserve query parameters (e.g., ?historiaClinicaId=...)
+      window.history.back();
     }
   };
 
