@@ -63,10 +63,11 @@ export interface PlanTratamiento {
 
 export interface ExamenSolicitado {
   id?: string;
-  tipoExamen?: string; // e.g., 'LABORATORIO'
+  tipoExamen?: string; // e.g., 'LABORATORIO', 'IMAGENOLOGIA'
   nombreExamen: string;
-  urgencia?: 'RUTINA' | 'URGENCIA';
+  urgencia?: 'RUTINA' | 'URGENTE'; // Fixed from 'URGENCIA' to match API
   indicaciones?: string;
+  estado?: string; // e.g., 'SOLICITADO'
 }
 
 export interface LocalizacionLesion {
@@ -79,10 +80,14 @@ export interface LocalizacionLesion {
 export interface EmergenciaObstetrica {
   gestasPrevias?: number;
   partosPrevios?: number;
+  abortosPrevios?: number; // Added from API response
   semanasGestacion?: number;
   fum?: string; // YYYY-MM-DD
   fpp?: string; // YYYY-MM-DD
+  presentacion?: string; // e.g., 'CEFALICA' - Added from API response
+  dinamicaUterina?: string; // Added from API response
   latidosFetales?: string;
+  observaciones?: string; // Added from API response
 }
 
 export interface AltaMedica {
@@ -96,10 +101,16 @@ export interface AltaMedica {
 export interface EvolucionMedica {
   id: string;
   historiaClinicaId: string;
+  numeroHistoriaClinica?: string; // Added from API response
   empleadoId: string;
+  empleadoNombreCompleto?: string; // Added from API response
+  empleadoEspecialidad?: string; // Added from API response
   tipoConsulta: string;
   fechaConsulta: string; // ISO 8601
+  estado?: string; // Added from API response (e.g., 'ACTIVA')
   observacionesGenerales?: string;
+  fechaCreacion?: string; // Added from API response
+  fechaActualizacion?: string; // Added from API response
   
   motivoAtencion?: MotivoAtencion;
   signosVitales?: SignosVitales;
