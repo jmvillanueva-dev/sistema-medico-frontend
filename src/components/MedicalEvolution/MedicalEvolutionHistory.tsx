@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { getEvolucionesByHistoriaClinica, getEvolucionesByEmpleado, getEvolucionesByFilter } from "../../services/medicalEvolutionService";
-import { getClinicalRecordById } from "../../services/clinicalRecordService";
+import { getClinicalRecordById, getClinicalRecordByNumber } from "../../services/clinicalRecordService";
 import { getPatientById } from "../../services/patientService";
 import type { EvolucionMedicaResumen } from "../../types/medicalEvolution";
 import type { ClinicalRecord } from "../../types/clinicalRecord";
+import ClinicalRecordDetailsModal from "../ClinicalRecordDetailsModal";
 import type { Patient } from "../../types/patient";
 import PatientFormModal from "../PatientFormModal";
 import { useAuthStore } from "@/store/authStore";
@@ -15,9 +16,32 @@ import EyeIcon from "@/icons/system/eye.svg";
 import FileIcon from "@/icons/system/file-text.svg";
 import PlusIcon from "@/icons/system/add-circle.svg";
 import UserIcon from "@/icons/system/user-single.svg";
+import ClipboardIcon from "@/icons/system/clipboard.svg";
 
 // Storage key for persisting filters
 const FILTER_STORAGE_KEY = "medical_evolutions_filter";
+
+const IconClipboard = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    <path d="M12 11h4" />
+    <path d="M12 16h4" />
+    <path d="M8 11h.01" />
+    <path d="M8 16h.01" />
+  </svg>
+);
 
 interface FilterState {
   fechaInicio: string;
@@ -56,19 +80,19 @@ interface MedicalEvolutionHistoryProps {
   onCreate?: () => void; // Optional for global view
 }
 
-export default function MedicalEvolutionHistory({ 
-  historiaClinicaId, 
+export default function MedicalEvolutionHistory({
+  historiaClinicaId,
   empleadoId,
-  onViewDetail, 
-  onEdit, 
-  onCreate 
+  onViewDetail,
+  onEdit,
+  onCreate
 }: MedicalEvolutionHistoryProps) {
   // Default navigation handlers
   const handleViewDetail = (id: string) => {
     if (onViewDetail) {
       onViewDetail(id);
     } else {
-      window.location.href = `/medical/evolutions/${id}`;
+      window.location.href = `/medical/evolutions/${ id }`;
     }
   };
 
@@ -76,7 +100,7 @@ export default function MedicalEvolutionHistory({
     if (onEdit) {
       onEdit(id);
     } else {
-      window.location.href = `/medical/evolutions/edit/${id}`;
+      window.location.href = `/medical/evolutions/edit/${ id }`;
     }
   };
 
@@ -96,7 +120,7 @@ export default function MedicalEvolutionHistory({
       const isMobile = window.innerWidth < 768;
       setViewMode(isMobile ? 'cards' : 'table');
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -136,6 +160,34 @@ export default function MedicalEvolutionHistory({
   const [isPatientModalOpen, setPatientModalOpen] = useState(false);
   const [patientData, setPatientData] = useState<Patient | null>(null);
   const [loadingPatient, setLoadingPatient] = useState(false);
+
+  // Clinical Record Details Modal State
+  const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<ClinicalRecord | null>(null);
+  const [loadingRecord, setLoadingRecord] = useState(false);
+
+  const handleViewRecord = async (numeroHistoriaClinica: string) => {
+    setLoadingRecord(true);
+    try {
+      const response = await getClinicalRecordByNumber(numeroHistoriaClinica);
+      if (response.data.success && response.data.data) {
+        setSelectedRecord(response.data.data);
+        setIsRecordModalOpen(true);
+      } else {
+        toast.error("No se pudo cargar la información de la historia clínica");
+      }
+    } catch (err) {
+      console.error("Error fetching clinical record:", err);
+      toast.error("Error al cargar la historia clínica");
+    } finally {
+      setLoadingRecord(false);
+    }
+  };
+
+  const handleCloseRecordModal = () => {
+    setIsRecordModalOpen(false);
+    setSelectedRecord(null);
+  };
 
   // Handle opening patient modal - fetch full patient data first
   const handleOpenPatientModal = async () => {
@@ -188,7 +240,7 @@ export default function MedicalEvolutionHistory({
       setIsFilterActive(false);
       return;
     }
-    
+
     // Only restore filters when viewing global evolutions (no historiaClinicaId)
     const storedFilters = getStoredFilters();
     if (storedFilters.isActive) {
@@ -302,7 +354,7 @@ export default function MedicalEvolutionHistory({
         {historiaClinicaId ? "Esta historia clínica aún no tiene evoluciones médicas." : "No se encontraron evoluciones con los filtros actuales."}
       </p>
       {onCreate && (
-        <button 
+        <button
           onClick={onCreate}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors"
         >
@@ -343,7 +395,7 @@ export default function MedicalEvolutionHistory({
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={handleOpenPatientModal}
@@ -382,7 +434,7 @@ export default function MedicalEvolutionHistory({
             <img src={FileIcon.src} alt="Historial" className="w-6 h-6 text-primary" />
             {historiaClinicaId ? "Historial de Evoluciones" : (isFilterActive ? "Búsqueda de Evoluciones" : "Mis Evoluciones Médicas")}
           </h2>
-          
+
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <input
               type="text"
@@ -391,12 +443,12 @@ export default function MedicalEvolutionHistory({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            
+
             {/* View Mode Toggle */}
             <div className="hidden md:flex items-center bg-slate-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`p-2 rounded-md transition-colors ${ viewMode === 'table' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700' }`}
                 title="Vista de tabla"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -405,7 +457,7 @@ export default function MedicalEvolutionHistory({
               </button>
               <button
                 onClick={() => setViewMode('cards')}
-                className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`p-2 rounded-md transition-colors ${ viewMode === 'cards' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700' }`}
                 title="Vista de tarjetas"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -413,9 +465,9 @@ export default function MedicalEvolutionHistory({
                 </svg>
               </button>
             </div>
-            
+
             {onCreate && (
-              <button 
+              <button
                 onClick={onCreate}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 whitespace-nowrap"
               >
@@ -472,13 +524,13 @@ export default function MedicalEvolutionHistory({
               )}
             </div>
           </div>
-          
+
           {/* Active Filter Indicator */}
           {isFilterActive && (
             <div className="mt-3 flex items-center gap-2 text-sm">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                Filtro activo: {fechaInicio && `desde ${fechaInicio}`} {fechaFin && `hasta ${fechaFin}`}
+                Filtro activo: {fechaInicio && `desde ${ fechaInicio }`} {fechaFin && `hasta ${ fechaFin }`}
               </span>
               <span className="text-slate-500">
                 ({evolutions.length} resultado{evolutions.length !== 1 ? 's' : ''})
@@ -491,154 +543,163 @@ export default function MedicalEvolutionHistory({
       {loading && renderLoading()}
       {error && !loading && renderError()}
       {!loading && !error && evolutions.length === 0 && renderEmptyState()}
-      
+
       {!loading && !error && evolutions.length > 0 && (
         <>
           {/* TABLE VIEW */}
           {viewMode === 'table' && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
-                  {!historiaClinicaId && (
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Historia Clínica</th>
-                  )}
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Médico</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredEvolutions.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">
-                      {new Date(ev.fechaConsulta).toLocaleDateString()} <span className="text-slate-400 text-xs ml-1">{new Date(ev.fechaConsulta).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    </td>
-                    {!historiaClinicaId && (
-                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">
-                        {ev.numeroHistoriaClinica}
-                      </td>
-                    )}
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                        {ev.tipoConsulta}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {ev.empleadoNombreCompleto}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {(() => {
-                        // Calculate completion (7 sections, excluding Obstétrica)
-                        const sections = [
-                          ev.tieneMotivoAtencion,
-                          ev.tieneSignosVitales,
-                          ev.tieneValoracionClinica,
-                          ev.tieneDiagnosticos,
-                          ev.tienePlanesTratamiento,
-                          ev.tieneExamenesSolicitados,
-                          ev.tieneAltaMedica
-                        ];
-                        const completed = sections.filter(Boolean).length;
-                        const total = sections.length;
-                        const percentage = Math.round((completed / total) * 100);
-                        
-                        // Determine color based on progress
-                        let barColor = 'bg-red-400'; // 0% - Pendiente
-                        let statusText = 'Pendiente';
-                        if (percentage === 100) {
-                          barColor = 'bg-green-500';
-                          statusText = 'Completada';
-                        } else if (percentage > 0) {
-                          barColor = 'bg-amber-400';
-                          statusText = 'En progreso';
-                        }
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200">
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                      {!historiaClinicaId && (
+                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Historia Clínica</th>
+                      )}
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Médico</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {filteredEvolutions.map((ev) => (
+                      <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900 whitespace-nowrap">
+                          {new Date(ev.fechaConsulta).toLocaleDateString()} <span className="text-slate-400 text-xs ml-1">{new Date(ev.fechaConsulta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </td>
+                        {!historiaClinicaId && (
+                          <td className="px-6 py-4 text-sm text-slate-600 font-medium">
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                              <button
+                                onClick={() => handleViewRecord(ev.numeroHistoriaClinica)}
+                                className="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                title="Ver Historia Clínica"
+                              >
+                                <IconClipboard className="w-4 h-4" />
+                              </button>
+                              {ev.numeroHistoriaClinica}
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                            {ev.tipoConsulta}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {ev.empleadoNombreCompleto}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {(() => {
+                            // Calculate completion (7 sections, excluding Obstétrica)
+                            const sections = [
+                              ev.tieneMotivoAtencion,
+                              ev.tieneSignosVitales,
+                              ev.tieneValoracionClinica,
+                              ev.tieneDiagnosticos,
+                              ev.tienePlanesTratamiento,
+                              ev.tieneExamenesSolicitados,
+                              ev.tieneAltaMedica
+                            ];
+                            const completed = sections.filter(Boolean).length;
+                            const total = sections.length;
+                            const percentage = Math.round((completed / total) * 100);
 
-                        return (
-                          <div className="flex flex-col gap-1.5 min-w-[120px]">
-                            {/* Progress Bar */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full ${barColor} rounded-full transition-all duration-300`}
-                                  style={{ width: `${percentage}%` }}
-                                />
+                            // Determine color based on progress
+                            let barColor = 'bg-red-400'; // 0% - Pendiente
+                            let statusText = 'Pendiente';
+                            if (percentage === 100) {
+                              barColor = 'bg-green-500';
+                              statusText = 'Completada';
+                            } else if (percentage > 0) {
+                              barColor = 'bg-amber-400';
+                              statusText = 'En progreso';
+                            }
+
+                            return (
+                              <div className="flex flex-col gap-1.5 min-w-[120px]">
+                                {/* Progress Bar */}
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full ${ barColor } rounded-full transition-all duration-300`}
+                                      style={{ width: `${ percentage }%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-medium text-slate-500 w-8">{percentage}%</span>
+                                </div>
+                                {/* Circles - Double click to navigate to edit with specific tab */}
+                                <div className="flex items-center gap-1">
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`1. Motivo de Atención: ${ ev.tieneMotivoAtencion ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=motivo`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`2. Signos Vitales: ${ ev.tieneSignosVitales ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=signos`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`3. Valoración Clínica: ${ ev.tieneValoracionClinica ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=valoracion`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`4. Diagnósticos: ${ ev.tieneDiagnosticos ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=diagnostico`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`5. Tratamiento: ${ ev.tienePlanesTratamiento ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=tratamiento`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                                    title={`6. Exámenes: ${ ev.tieneExamenesSolicitados ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=examenes`}
+                                  />
+                                  <span
+                                    className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300' }`}
+                                    title={`7. Alta Médica: ${ ev.tieneAltaMedica ? '✓ Completado' : '○ Pendiente' } (doble clic para editar)`}
+                                    onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=alta`}
+                                  />
+                                </div>
+                                {/* Status Label */}
+                                <span className={`text-xs font-medium ${ percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500' }`}>
+                                  {statusText} ({completed}/{total})
+                                </span>
                               </div>
-                              <span className="text-xs font-medium text-slate-500 w-8">{percentage}%</span>
-                            </div>
-                            {/* Circles - Double click to navigate to edit with specific tab */}
-                            <div className="flex items-center gap-1">
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`1. Motivo de Atención: ${ev.tieneMotivoAtencion ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=motivo`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`2. Signos Vitales: ${ev.tieneSignosVitales ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=signos`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`3. Valoración Clínica: ${ev.tieneValoracionClinica ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=valoracion`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`4. Diagnósticos: ${ev.tieneDiagnosticos ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=diagnostico`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`5. Tratamiento: ${ev.tienePlanesTratamiento ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=tratamiento`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                                title={`6. Exámenes: ${ev.tieneExamenesSolicitados ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=examenes`}
-                              />
-                              <span 
-                                className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300'}`}
-                                title={`7. Alta Médica: ${ev.tieneAltaMedica ? '✓ Completado' : '○ Pendiente'} (doble clic para editar)`}
-                                onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=alta`}
-                              />
-                            </div>
-                            {/* Status Label */}
-                            <span className={`text-xs font-medium ${percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500'}`}>
-                              {statusText} ({completed}/{total})
-                            </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              onClick={() => handleViewDetail(ev.id)}
+                              title="Ver Detalles"
+                            >
+                              <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
+                            </button>
+                            <button
+                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              onClick={() => handleEdit(ev.id)}
+                              title="Editar"
+                            >
+                              <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+                            </button>
                           </div>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          onClick={() => handleViewDetail(ev.id)}
-                          title="Ver Detalles"
-                        >
-                          <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          onClick={() => handleEdit(ev.id)}
-                          title="Editar"
-                        >
-                          <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {/* CARDS VIEW */}
@@ -659,26 +720,25 @@ export default function MedicalEvolutionHistory({
                 const total = sections.length;
                 const percentage = Math.round((completed / total) * 100);
                 const statusText = percentage === 100 ? 'Completada' : percentage > 0 ? 'En progreso' : 'Pendiente';
-                
+
                 return (
-                  <div 
-                    key={ev.id} 
+                  <div
+                    key={ev.id}
                     className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow flex flex-col"
                   >
                     {/* Card Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                          ev.tipoConsulta === 'EMERGENCIA' ? 'bg-red-50 text-red-700' : 
-                          ev.tipoConsulta === 'CONTROL' ? 'bg-blue-50 text-blue-700' : 
-                          'bg-green-50 text-green-700'
-                        }`}>
+                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${ ev.tipoConsulta === 'EMERGENCIA' ? 'bg-red-50 text-red-700' :
+                          ev.tipoConsulta === 'CONTROL' ? 'bg-blue-50 text-blue-700' :
+                            'bg-green-50 text-green-700'
+                          }`}>
                           {ev.tipoConsulta}
                         </span>
                         <p className="text-xs text-slate-500 mt-1">
-                          {new Date(ev.fechaConsulta).toLocaleDateString('es-EC', { 
-                            day: '2-digit', 
-                            month: 'short', 
+                          {new Date(ev.fechaConsulta).toLocaleDateString('es-EC', {
+                            day: '2-digit',
+                            month: 'short',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
@@ -705,74 +765,80 @@ export default function MedicalEvolutionHistory({
 
                     {/* Historia Clínica (if not in patient context) */}
                     {!historiaClinicaId && (
-                      <div className="text-sm font-medium text-slate-800 mb-2">
-                        HC: {ev.numeroHistoriaClinica}
+                      <div className="text-sm font-medium text-slate-800 mb-2 flex items-center gap-2 whitespace-nowrap">
+                        <button
+                          onClick={() => handleViewRecord(ev.numeroHistoriaClinica)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="Ver Historia Clínica"
+                        >
+                          <IconClipboard className="w-4 h-4" />
+                        </button>
+                        <span>HC: {ev.numeroHistoriaClinica}</span>
                       </div>
                     )}
 
                     {/* Médico */}
                     <div className="text-sm text-slate-600 mb-3 flex items-center gap-1.5">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 640 640" stroke="currentColor">
+                        <path fill="currentColor" d="M320 72c-66.3 0-120 53.7-120 120s53.7 120 120 120s120-53.7 120-120S386.3 72 320 72m60 312.8c-5.4-.5-11-.8-16.6-.8h-86.9c-5.6 0-11.1.3-16.6.8v67.5c16.5 7.6 28 24.3 28 43.6c0 26.5-21.5 48-48 48s-48-21.5-48-48c0-19.4 11.5-36.1 28-43.6v-58.4C157 417 112 477.6 112 548.6c0 15.1 12.3 27.4 27.4 27.4h361.1c15.1 0 27.4-12.3 27.4-27.4c0-71-45-131.5-108-154.6v37.4c23.3 8.2 40 30.5 40 56.6v32c0 11-9 20-20 20s-20-9-20-20v-32c0-11-9-20-20-20s-20 9-20 20v32c0 11-9 20-20 20s-20-9-20-20v-32c0-26.1 16.7-48.3 40-56.6v-46.6z" />
                       </svg>
+
                       {ev.empleadoNombreCompleto}
                     </div>
 
                     {/* Progress Bar */}
                     <div className="mt-auto pt-3 border-t border-slate-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className={`text-xs font-medium ${
-                          percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500'
-                        }`}>
+                        <span className={`text-xs font-medium ${ percentage === 100 ? 'text-green-600' : percentage > 0 ? 'text-amber-600' : 'text-red-500'
+                          }`}>
                           {statusText} ({completed}/{total})
                         </span>
                         <span className="text-xs text-slate-500">{percentage}%</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full transition-all ${
-                            percentage === 100 ? 'bg-green-500' : percentage > 0 ? 'bg-amber-400' : 'bg-red-400'
-                          }`}
-                          style={{ width: `${percentage}%` }}
+                        <div
+                          className={`h-full transition-all ${ percentage === 100 ? 'bg-green-500' : percentage > 0 ? 'bg-amber-400' : 'bg-red-400'
+                            }`}
+                          style={{ width: `${ percentage }%` }}
                         />
                       </div>
 
                       {/* Completion Circles */}
                       <div className="flex items-center justify-center gap-1.5 mt-3">
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`1. Motivo: ${ev.tieneMotivoAtencion ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=motivo`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneMotivoAtencion ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`1. Motivo: ${ ev.tieneMotivoAtencion ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=motivo`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`2. Signos: ${ev.tieneSignosVitales ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=signos`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneSignosVitales ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`2. Signos: ${ ev.tieneSignosVitales ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=signos`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`3. Valoración: ${ev.tieneValoracionClinica ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=valoracion`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneValoracionClinica ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`3. Valoración: ${ ev.tieneValoracionClinica ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=valoracion`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`4. Diagnósticos: ${ev.tieneDiagnosticos ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=diagnostico`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneDiagnosticos ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`4. Diagnósticos: ${ ev.tieneDiagnosticos ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=diagnostico`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`5. Tratamiento: ${ev.tienePlanesTratamiento ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=tratamiento`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tienePlanesTratamiento ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`5. Tratamiento: ${ ev.tienePlanesTratamiento ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=tratamiento`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300'}`}
-                          title={`6. Exámenes: ${ev.tieneExamenesSolicitados ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=examenes`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneExamenesSolicitados ? 'bg-primary border-primary' : 'bg-transparent border-slate-300' }`}
+                          title={`6. Exámenes: ${ ev.tieneExamenesSolicitados ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=examenes`}
                         />
-                        <span 
-                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300'}`}
-                          title={`7. Alta: ${ev.tieneAltaMedica ? '✓' : '○'}`}
-                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ev.id}?tab=alta`}
+                        <span
+                          className={`w-3 h-3 rounded-full border-2 cursor-pointer hover:scale-125 transition-transform ${ ev.tieneAltaMedica ? 'bg-green-500 border-green-500' : 'bg-transparent border-green-300' }`}
+                          title={`7. Alta: ${ ev.tieneAltaMedica ? '✓' : '○' }`}
+                          onDoubleClick={() => window.location.href = `/medical/evolutions/edit/${ ev.id }?tab=alta`}
                         />
                       </div>
                     </div>
@@ -790,6 +856,18 @@ export default function MedicalEvolutionHistory({
         onClose={() => setPatientModalOpen(false)}
         onSave={handlePatientSave}
         patient={patientData}
+      />
+
+      {/* Clinical Record Details Modal */}
+      <ClinicalRecordDetailsModal
+        isOpen={isRecordModalOpen}
+        onClose={handleCloseRecordModal}
+        record={selectedRecord}
+        showFooter={false}
+        onEdit={(record) => {
+          // Navigate to clinical records page or handle edit if needed
+          window.location.href = `/medical/clinical-records?search=${ record.numeroHistoriaClinica }`;
+        }}
       />
     </div>
   );
