@@ -1,5 +1,5 @@
 import api from "./api";
-import type { ClinicalRecord, ClinicalRecordRequest } from "../types/clinicalRecord";
+import type { ClinicalRecord, ClinicalRecordRequest, FullClinicalRecordResponse } from "../types/clinicalRecord";
 import type { ApiResponse } from "../types/api";
 
 export const getClinicalRecords = (page: number = 0, size: number = 10) => {
@@ -36,4 +36,12 @@ export const deleteClinicalRecord = (id: string) => {
 
 export const searchClinicalRecordsByDate = (fechaInicio: string, fechaFin: string) => {
   return api.get<ApiResponse<ClinicalRecord[]>>(`/historias-clinicas/buscar-por-fecha?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+};
+
+/**
+ * Get complete clinical record information for a specific evolution
+ * Returns aggregated data including patient, clinical record, and evolution details
+ */
+export const getFullClinicalRecordByEvolutionId = (evolutionId: string) => {
+  return api.get<ApiResponse<FullClinicalRecordResponse>>(`/historias-clinicas/evolucion/${evolutionId}/completa`);
 };

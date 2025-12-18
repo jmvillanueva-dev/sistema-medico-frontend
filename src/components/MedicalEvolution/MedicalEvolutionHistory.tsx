@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { getEvolucionesByHistoriaClinica, getEvolucionesByEmpleado, getEvolucionesByFilter } from "../../services/medicalEvolutionService";
-import { getClinicalRecordById, getClinicalRecordByNumber } from "../../services/clinicalRecordService";
+import { getClinicalRecordById, getClinicalRecordByNumber, getFullClinicalRecordByEvolutionId } from "../../services/clinicalRecordService";
 import { getPatientById } from "../../services/patientService";
+import { generateClinicalRecordPDF } from "../../utils/pdfGenerator";
 import type { EvolucionMedicaResumen } from "../../types/medicalEvolution";
 import type { ClinicalRecord } from "../../types/clinicalRecord";
 import ClinicalRecordDetailsModal from "../ClinicalRecordDetailsModal";
@@ -110,6 +111,7 @@ export default function MedicalEvolutionHistory({
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
 
   // View mode state - 'table' or 'cards'
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
@@ -226,6 +228,28 @@ export default function MedicalEvolutionHistory({
       } catch (err) {
         console.error("Error refreshing HC info:", err);
       }
+    }
+  };
+
+  // Handle PDF generation for an evolution
+  const handleDownloadPDF = async (evolutionId: string) => {
+    try {
+      setGeneratingPdfId(evolutionId);
+      toast.info("Generando PDF...");
+
+      const response = await getFullClinicalRecordByEvolutionId(evolutionId);
+
+      if (response.data.success && response.data.data) {
+        generateClinicalRecordPDF(response.data.data);
+        toast.success("PDF generado exitosamente");
+      } else {
+        toast.error("No se pudo obtener la información completa");
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Error al generar el PDF");
+    } finally {
+      setGeneratingPdfId(null);
     }
   };
 
@@ -692,6 +716,20 @@ export default function MedicalEvolutionHistory({
                             >
                               <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
                             </button>
+                            <button
+                              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                              onClick={() => handleDownloadPDF(ev.id)}
+                              disabled={generatingPdfId === ev.id}
+                              title="Descargar PDF"
+                            >
+                              {generatingPdfId === ev.id ? (
+                                <div className="w-4 h-4 border-2 border-slate-300 border-t-red-600 rounded-full animate-spin"></div>
+                              ) : (
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                              )}
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -759,6 +797,20 @@ export default function MedicalEvolutionHistory({
                           title="Editar"
                         >
                           <img src={EditIcon.src} alt="Editar" className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDownloadPDF(ev.id)}
+                          disabled={generatingPdfId === ev.id}
+                          className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                          title="Descargar PDF"
+                        >
+                          {generatingPdfId === ev.id ? (
+                            <div className="w-4 h-4 border-2 border-slate-300 border-t-red-600 rounded-full animate-spin"></div>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          )}
                         </button>
                       </div>
                     </div>

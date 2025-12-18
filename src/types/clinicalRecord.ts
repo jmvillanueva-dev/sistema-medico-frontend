@@ -1,4 +1,5 @@
 import type { Patient } from "./patient";
+import type { EvolucionMedica } from "./medicalEvolution";
 
 export interface ClinicalRecord {
   id: string;
@@ -22,4 +23,14 @@ export interface ClinicalRecordRequest {
   institucionSistema?: string;
   unidadOperativa?: string;
   codUnidad?: string;
+}
+
+/**
+ * Aggregated response from the complete clinical record endpoint
+ * Includes patient data, clinical record metadata, and evolution details
+ */
+export interface FullClinicalRecordResponse {
+  paciente: Patient;
+  historiaClinica: ClinicalRecord;
+  evolucion: EvolucionMedica;
 }

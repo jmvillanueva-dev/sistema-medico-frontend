@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { getEvolucionById } from "../../services/medicalEvolutionService";
-import { getClinicalRecordById } from "../../services/clinicalRecordService";
+import { getClinicalRecordById, getFullClinicalRecordByEvolutionId } from "../../services/clinicalRecordService";
 import { getPatientById } from "../../services/patientService";
+import { generateClinicalRecordPDF } from "../../utils/pdfGenerator";
 import type { EvolucionMedica } from "../../types/medicalEvolution";
 import type { ClinicalRecord } from "../../types/clinicalRecord";
 import type { Patient } from "../../types/patient";
@@ -30,6 +31,7 @@ export default function MedicalEvolutionDetail({
   const [loading, setLoading] = useState(true);
   const [loadingPatient, setLoadingPatient] = useState(false);
   const [isPatientModalOpen, setPatientModalOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     const fetchEvolutionData = async () => {
@@ -86,8 +88,30 @@ export default function MedicalEvolutionDetail({
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    if (!evolutionId) {
+      toast.error("ID de evolución no disponible");
+      return;
+    }
+
+    try {
+      setIsGeneratingPdf(true);
+      toast.info("Generando PDF...");
+
+      const response = await getFullClinicalRecordByEvolutionId(evolutionId);
+
+      if (response.data.success && response.data.data) {
+        generateClinicalRecordPDF(response.data.data);
+        toast.success("PDF generado exitosamente");
+      } else {
+        toast.error("No se pudo obtener la información completa");
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Error al generar el PDF");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handlePatientSave = async () => {
@@ -213,11 +237,16 @@ export default function MedicalEvolutionDetail({
 
           <div className="flex gap-3 w-full sm:w-auto xl:justify-end">
             <button
-              onClick={handlePrint}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPdf}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <img src={PrinterIcon.src} alt="Imprimir" className="w-4 h-4" />
-              <span>Imprimir</span>
+              {isGeneratingPdf ? (
+                <div className="w-4 h-4 border-2 border-slate-300 border-t-primary rounded-full animate-spin"></div>
+              ) : (
+                <img src={PrinterIcon.src} alt="Descargar PDF" className="w-4 h-4" />
+              )}
+              <span>{isGeneratingPdf ? "Generando..." : "Descargar PDF"}</span>
             </button>
           </div>
         </div>
