@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Modal } from "./common/Modal";
 import { Button } from "./common/Button";
-import CloseIcon from "@/icons/system/close.svg";
+import CloseIcon from "@/icons/system/close-fill.svg";
 import DeleteIcon from "@/icons/system/delete-full.svg";
 
 interface Props {

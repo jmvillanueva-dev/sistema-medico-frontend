@@ -15,9 +15,8 @@ import "react-toastify/dist/ReactToastify.css";
 import EditIcon from "@/icons/system/edit.svg";
 import EyeIcon from "@/icons/system/eye.svg";
 import FileIcon from "@/icons/system/file-text.svg";
-import PlusIcon from "@/icons/system/add-circle.svg";
+import PlusIconWhite from "@/icons/system/add-circle-white.svg";
 import UserIcon from "@/icons/system/user-single.svg";
-import ClipboardIcon from "@/icons/system/clipboard.svg";
 
 // Storage key for persisting filters
 const FILTER_STORAGE_KEY = "medical_evolutions_filter";
@@ -102,6 +101,19 @@ export default function MedicalEvolutionHistory({
       onEdit(id);
     } else {
       window.location.href = `/medical/evolutions/edit/${ id }`;
+    }
+  };
+
+  const handleCreate = () => {
+    if (onCreate) {
+      onCreate();
+    } else {
+      // If historiaClinicaId is available, pass it to skip HC selection
+      if (historiaClinicaId) {
+        window.location.href = `/medical/evolutions/create?hcId=${ historiaClinicaId }`;
+      } else {
+        window.location.href = '/medical/evolutions/create';
+      }
     }
   };
 
@@ -377,15 +389,13 @@ export default function MedicalEvolutionHistory({
       <p className="text-sm text-slate-500 max-w-xs mx-auto mb-4">
         {historiaClinicaId ? "Esta historia clínica aún no tiene evoluciones médicas." : "No se encontraron evoluciones con los filtros actuales."}
       </p>
-      {onCreate && (
-        <button
-          onClick={onCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors"
-        >
-          <img src={PlusIcon.src} alt="Crear" className="w-5 h-5" />
-          Nueva Evolución
-        </button>
-      )}
+      <button
+        onClick={handleCreate}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors"
+      >
+        <img src={PlusIconWhite.src} alt="Crear" className="w-5 h-5" />
+        Nueva Evolución
+      </button>
     </div>
   );
 
@@ -490,15 +500,14 @@ export default function MedicalEvolutionHistory({
               </button>
             </div>
 
-            {onCreate && (
-              <button
-                onClick={onCreate}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 whitespace-nowrap"
-              >
-                <img src={PlusIcon.src} alt="Crear" className="w-5 h-5" />
-                <span className="hidden sm:inline">Nueva Evolución</span>
-              </button>
-            )}
+            {/* Show create button always */}
+            <button
+              onClick={handleCreate}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 whitespace-nowrap"
+            >
+              <img src={PlusIconWhite.src} alt="Crear" className="w-5 h-5" />
+              <span className="hidden sm:inline">Nueva Evolución</span>
+            </button>
           </div>
         </div>
 

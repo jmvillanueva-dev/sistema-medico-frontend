@@ -1,0 +1,11 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import EvolutionCreationFlow from "../../../components/EvolutionCreationFlow";
+
+const url = new URL(Astro.request.url);
+const hcId = url.searchParams.get("hcId");
+---
+
+<DashboardLayout title="Nueva Evolución Médica">
+  <EvolutionCreationFlow client:load hcId={hcId} />
+</DashboardLayout>
