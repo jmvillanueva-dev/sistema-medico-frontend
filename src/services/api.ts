@@ -21,6 +21,7 @@ api.interceptors.request.use(
       "/auth/login",
       "/auth/forgot-password",
       "/auth/reset-password",
+      "/auth/refresh-token",
     ];
     
     const isPublicRoute = publicAuthRoutes.some((route) =>
@@ -45,25 +46,57 @@ api.interceptors.request.use(
   }
 );
 
+// Variable para prevenir múltiples intentos simultáneos de refresh
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Interceptor de Respuesta (Response)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Verificamos si el error es 401 (No autorizado) y si no es un reintento
-    // IMPORTANTE: Ignorar errores 401 en el login, ya que son credenciales inválidas, no token expirado
     if (
-      error.response?.status === 401 &&
+      (error.response?.status === 401 || error.response?.status === 403) &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("/auth/login")
     ) {
-      originalRequest._retry = true; // Marcamos para evitar bucles infinitos
+      if (isRefreshing) {
+        // Si ya hay un refresh en progreso, encolar esta petición
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const refreshToken = Cookies.get("auth-refresh-token");
 
         if (!refreshToken) {
+          console.warn("No refresh token available, forcing logout");
           throw new Error("No refresh token available");
         }
 
@@ -78,6 +111,7 @@ api.interceptors.response.use(
           secure: import.meta.env.PROD,
           sameSite: "strict",
         } as const;
+        
         Cookies.set("auth-token", accessToken, cookieOptions);
 
         if (newRefreshToken) {
@@ -85,12 +119,24 @@ api.interceptors.response.use(
         }
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        
+        // Procesar todas las peticiones en cola
+        processQueue(null, accessToken);
+        isRefreshing = false;
 
         // Reintentar la petición original
         return api(originalRequest);
-      } catch (refreshError) {
-        console.error("Session expired or refresh failed", refreshError);
-        useAuthStore.getState().logout();
+      } catch (refreshError: any) {
+        console.error("Token refresh failed:", refreshError);
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        
+        // Solo hacer logout si el refresh token realmente expiró o es inválido
+        if (refreshError.response?.status === 500 || refreshError.response?.status === 400) {
+          console.warn("Refresh token expired or invalid, logging out user");
+          useAuthStore.getState().logout();
+        }
+        
         return Promise.reject(refreshError);
       }
     }
