@@ -10,15 +10,17 @@ interface Props {
   employeeId: string;
   currentEmail: string;
   onSave: () => void;
+  setIsLoading: (loading: boolean) => void;
+  setIsDirty: (dirty: boolean) => void;
 }
 
 const EmployeeEmailForm: React.FC<Props> = ({
   employeeId,
   currentEmail,
   onSave,
+  setIsLoading,
+  setIsDirty: setParentDirty
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const {
     register,
     handleSubmit,
@@ -28,13 +30,18 @@ const EmployeeEmailForm: React.FC<Props> = ({
     resolver: zodResolver(updateEmailSchema),
   });
 
+  // Sync dirty state
+  React.useEffect(() => {
+    setParentDirty(isDirty);
+  }, [isDirty, setParentDirty]);
+
   const onSubmit = async (data: UpdateEmailFormData) => {
     if (data.nuevoEmail === currentEmail) {
       toast.error("El nuevo correo es igual al actual.");
       return;
     }
 
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
       await updateEmployeeEmail(employeeId, data);
@@ -48,13 +55,13 @@ const EmployeeEmailForm: React.FC<Props> = ({
         error.response?.data?.message || "Error al actualizar el correo.";
       toast.error(errorMsg);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
+      <form id="employee-email-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
         <div className="flex flex-col gap-2">
           <label htmlFor="current-email" className="text-sm font-medium text-slate-900">Correo Actual</label>
           <input
@@ -67,24 +74,15 @@ const EmployeeEmailForm: React.FC<Props> = ({
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="nuevoEmail" className="text-sm font-medium text-slate-900">Nuevo Correo Electrónico</label>
-          <input 
-            id="nuevoEmail" 
-            type="email" 
-            {...register("nuevoEmail")} 
+          <input
+            id="nuevoEmail"
+            type="email"
+            {...register("nuevoEmail")}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
           {errors.nuevoEmail && (
             <p className="text-xs text-red-600 font-medium">{errors.nuevoEmail.message}</p>
           )}
-        </div>
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
-          <button
-            type="submit"
-            className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-            disabled={isSubmitting || !isDirty}
-          >
-            {isSubmitting ? "Actualizando..." : "Actualizar Correo"}
-          </button>
         </div>
       </form>
     </>

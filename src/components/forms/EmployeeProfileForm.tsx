@@ -18,11 +18,18 @@ interface Props {
   employee: Employee | null;
   onSave: () => void;
   onCancel: () => void;
+  setIsLoading: (loading: boolean) => void;
+  setIsDirty: (dirty: boolean) => void;
 }
 
-const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) => {
+const EmployeeProfileForm: React.FC<Props> = ({
+  employee,
+  onSave,
+  onCancel,
+  setIsLoading,
+  setIsDirty: setParentDirty
+}) => {
   const isEditing = employee !== null;
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
   const user = useAuthStore((state) => state.user);
@@ -42,6 +49,11 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) =>
     defaultValues: { roles: [] },
     mode: "onTouched",
   });
+
+  // Sync dirty state with parent
+  useEffect(() => {
+    setParentDirty(isDirty);
+  }, [isDirty, setParentDirty]);
 
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
@@ -91,7 +103,7 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) =>
   }, [employee, isEditing, reset, isAdmin]);
 
   const onSubmit = async (data: any) => {
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
       if (isEditing) {
@@ -123,7 +135,7 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) =>
 
         if (Object.keys(changedData).length === 0) {
           toast.info("No hay cambios para guardar.");
-          setIsSubmitting(false);
+          setIsLoading(false);
           return;
         }
         await updateEmployee(employee!.id, changedData);
@@ -139,13 +151,13 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) =>
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Ocurrió un error.";
       toast.error(errorMsg);
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+      <form id="employee-form" onSubmit={handleSubmit(onSubmit)} className="w-full">
         {/* Info Alert */}
         {!isEditing && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
@@ -340,36 +352,6 @@ const EmployeeProfileForm: React.FC<Props> = ({ employee, onSave, onCancel }) =>
 
             {/* Si NO es admin y es edición, no mostramos nada sobre roles */}
           </div>
-        </div>
-
-        <div className="pt-6 mt-6 border-t border-slate-200 flex justify-end gap-3">
-          <button
-            type="button"
-            disabled={isSubmitting}
-            className="px-5 py-2.5 text-slate-600 bg-white border border-slate-300 font-medium rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all"
-            onClick={() => {
-              onCancel();
-            }}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || (isEditing && !isDirty)}
-            className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/30 flex items-center gap-2"
-          >
-            {isSubmitting && (
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            )}
-            {isSubmitting
-              ? "Guardando..."
-              : isEditing
-                ? "Actualizar Empleado"
-                : "Crear Empleado"}
-          </button>
         </div>
       </form>
     </>
