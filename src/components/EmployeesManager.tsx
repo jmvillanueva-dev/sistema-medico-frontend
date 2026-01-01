@@ -21,6 +21,7 @@ export interface Employee {
   estaActivo: boolean;
   fechaCreacion: string | null;
   email?: string; // Añadido para el formulario de email
+  roles?: string[]; // Roles del empleado
 }
 
 export default function EmployeesManager() {
@@ -28,6 +29,7 @@ export default function EmployeesManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Estados para modales
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -56,7 +58,7 @@ export default function EmployeesManager() {
 
   useEffect(() => {
     fetchEmployees();
-    
+
     // Determinar vista inicial basada en el ancho de pantalla
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -72,6 +74,17 @@ export default function EmployeesManager() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // --- Lógica de Filtrado ---
+  const filteredEmployees = employees.filter((employee) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      employee.nombre.toLowerCase().includes(term) ||
+      employee.apellido.toLowerCase().includes(term) ||
+      employee.cedula.includes(term) ||
+      employee.especialidad.toLowerCase().includes(term)
+    );
+  });
 
   // --- Lógica para CRUD ---
 
@@ -105,7 +118,7 @@ export default function EmployeesManager() {
       await deleteEmployee(employeeToDelete.id);
       setEmployees(employees.filter((emp) => emp.id !== employeeToDelete.id));
       toast.success(
-        `✅ Empleado ${employeeToDelete.nombre} ${employeeToDelete.apellido} eliminado correctamente.`
+        `✅ Empleado ${ employeeToDelete.nombre } ${ employeeToDelete.apellido } eliminado correctamente.`
       );
       setDeleteModalOpen(false);
       setEmployeeToDelete(null);
@@ -158,13 +171,19 @@ export default function EmployeesManager() {
       <span className="text-5xl mb-4 opacity-50">📭</span>
       <h3 className="text-lg font-semibold text-slate-900 mb-2">No se encontraron empleados</h3>
       <p className="text-sm text-slate-500 max-w-xs mx-auto">
-        Aún no hay empleados registrados. Crea uno nuevo para comenzar.
+        {searchTerm
+          ? `No hay resultados para "${ searchTerm }". Intenta con otro término.`
+          : "Aún no hay empleados registrados. Crea uno nuevo para comenzar."}
       </p>
     </div>
   );
 
   // Render Content based on ViewMode
   const renderContent = () => {
+    if (filteredEmployees.length === 0) {
+      return renderEmptyState();
+    }
+
     if (viewMode === "list") {
       return (
         <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -181,7 +200,7 @@ export default function EmployeesManager() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {employees.map((employee) => (
+                {filteredEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-6 py-4 text-sm font-medium text-slate-900">
                       <div className="flex items-center gap-3">
@@ -200,13 +219,12 @@ export default function EmployeesManager() {
                     <td className="px-6 py-4 text-sm text-slate-600">{employee.telefono}</td>
                     <td className="px-6 py-4 text-sm">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                          employee.estaActivo 
-                            ? "bg-green-50 text-green-700 border-green-200" 
-                            : "bg-red-50 text-red-700 border-red-200"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${ employee.estaActivo
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-red-50 text-red-700 border-red-200"
+                          }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${employee.estaActivo ? "bg-green-600" : "bg-red-600"}`}></span>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${ employee.estaActivo ? "bg-green-600" : "bg-red-600" }`}></span>
                         {employee.estaActivo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
@@ -238,20 +256,19 @@ export default function EmployeesManager() {
     } else {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {employees.map((employee) => (
+          {filteredEmployees.map((employee) => (
             <div key={employee.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group relative">
               <div className="absolute top-4 right-4">
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                    employee.estaActivo 
-                      ? "bg-green-50 text-green-700 border-green-200" 
-                      : "bg-red-50 text-red-700 border-red-200"
-                  }`}
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${ employee.estaActivo
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-red-50 text-red-700 border-red-200"
+                    }`}
                 >
                   {employee.estaActivo ? "Activo" : "Inactivo"}
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-primary-100 text-primary flex items-center justify-center text-lg font-bold">
                   {employee.nombre.charAt(0)}{employee.apellido.charAt(0)}
@@ -261,7 +278,7 @@ export default function EmployeesManager() {
                   <p className="text-sm text-slate-500">{employee.especialidad}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Cédula:</span>
@@ -274,28 +291,28 @@ export default function EmployeesManager() {
               </div>
 
               <div className="flex gap-2 pt-4 border-t border-slate-100">
-                 <button
-                      className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
-                      onClick={() => handleEdit(employee)}
-                    >
-                      <img
-                        src={EditIcon.src}
-                        alt="Editar"
-                        className="w-4 h-4"
-                      />
-                      <span>Editar</span>
-                    </button>
-                    <button
-                      className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                      onClick={() => handleDelete(employee)}
-                    >
-                      <img
-                        src={DeleteIcon.src}
-                        alt="Eliminar"
-                        className="w-4 h-4"
-                      />
-                      <span>Eliminar</span>
-                    </button>
+                <button
+                  className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors"
+                  onClick={() => handleEdit(employee)}
+                >
+                  <img
+                    src={EditIcon.src}
+                    alt="Editar"
+                    className="w-4 h-4"
+                  />
+                  <span>Editar</span>
+                </button>
+                <button
+                  className="flex-1 inline-flex justify-center items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                  onClick={() => handleDelete(employee)}
+                >
+                  <img
+                    src={DeleteIcon.src}
+                    alt="Eliminar"
+                    className="w-4 h-4"
+                  />
+                  <span>Eliminar</span>
+                </button>
               </div>
             </div>
           ))}
@@ -319,25 +336,44 @@ export default function EmployeesManager() {
         theme="light"
         style={{ zIndex: 99999 }}
       />
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Gestión de Empleados</h1>
           <p className="text-slate-500 text-sm mt-1">Administra el personal médico y administrativo</p>
         </div>
-        
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
-          <button 
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none" 
-            onClick={handleCreate}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Nuevo Empleado
-          </button>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {/* Barra de Búsqueda */}
+          <div className="relative w-full sm:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all"
+              placeholder="Buscar empleado..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
+            <button
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 flex-1 sm:flex-none"
+              onClick={handleCreate}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Nuevo Empleado
+            </button>
+          </div>
         </div>
       </div>
 
@@ -353,7 +389,7 @@ export default function EmployeesManager() {
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         title="Confirmar Eliminación"
-        message={`¿Estás seguro de que deseas eliminar a ${employeeToDelete?.nombre} ${employeeToDelete?.apellido}? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar a ${ employeeToDelete?.nombre } ${ employeeToDelete?.apellido }? Esta acción no se puede deshacer.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalOpen(false)}
         confirmButtonText="Sí, eliminar"
