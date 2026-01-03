@@ -10,6 +10,7 @@ interface ClinicalRecordDetailsModalProps {
     onClose: () => void;
     record: ClinicalRecord | null;
     onEdit?: (record: ClinicalRecord) => void;
+    onViewEvolutions?: (record: ClinicalRecord) => void;
     showFooter?: boolean;
 }
 
@@ -18,12 +19,17 @@ export default function ClinicalRecordDetailsModal({
     onClose,
     record,
     onEdit,
+    onViewEvolutions,
     showFooter = true,
 }: ClinicalRecordDetailsModalProps) {
     if (!record) return null;
 
     const handleViewEvolutions = () => {
-        window.location.href = `/medical/evolutions?historiaClinicaId=${ record.id }`;
+        if (onViewEvolutions) {
+            onViewEvolutions(record);
+        } else {
+            window.location.href = `/medical/evolutions?historiaClinicaId=${ record.id }`;
+        }
     };
 
     return (
@@ -39,11 +45,11 @@ export default function ClinicalRecordDetailsModal({
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Información del Paciente</h4>
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">
-                            {record.pacienteNombreCompleto.charAt(0)}
+                            {record.pacienteNombreCompleto ? record.pacienteNombreCompleto.charAt(0) : '?'}
                         </div>
                         <div>
                             <h3 className="font-bold text-slate-900 text-lg">
-                                {record.pacienteNombreCompleto}
+                                {record.pacienteNombreCompleto || "Sin Nombre"}
                             </h3>
                             <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600 mt-1">
                                 <p><span className="font-medium text-slate-900">Cédula:</span> {record.pacienteCedula}</p>

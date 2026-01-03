@@ -185,8 +185,18 @@ export default function MedicalEvolutionHistory({
     try {
       const response = await getClinicalRecordByNumber(numeroHistoriaClinica);
       if (response.data.success && response.data.data) {
-        setSelectedRecord(response.data.data);
-        setIsRecordModalOpen(true);
+        // The service now returns an array (partial matches). We need the specific one.
+        const records = response.data.data;
+        const record = Array.isArray(records)
+          ? records.find(r => r.numeroHistoriaClinica === numeroHistoriaClinica) || records[0]
+          : records;
+
+        if (record) {
+          setSelectedRecord(record);
+          setIsRecordModalOpen(true);
+        } else {
+          toast.error("No se encontró la información de la historia clínica");
+        }
       } else {
         toast.error("No se pudo cargar la información de la historia clínica");
       }
@@ -267,10 +277,9 @@ export default function MedicalEvolutionHistory({
 
   // Load stored filters on mount - but clear them when viewing a specific HC
   useEffect(() => {
-    // If viewing evolutions for a specific Historia Clínica, clear any stored filters
-    // to avoid confusion with mixed results
+    // If viewing evolutions for a specific Historia Clínica, we do NOT clear stored filters anymore
+    // This allows returning to the filtered list with state preserved
     if (historiaClinicaId) {
-      clearStoredFilters();
       setFechaInicio("");
       setFechaFin("");
       setIsFilterActive(false);
@@ -443,15 +452,26 @@ export default function MedicalEvolutionHistory({
                   )}
                   Ver Paciente
                 </button>
-                <a
-                  href="/medical/clinical-records"
+                <button
+                  onClick={() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const backTo = urlParams.get('backTo');
+                    if (backTo === 'evolutions') {
+                      window.location.href = '/medical/evolutions';
+                    } else {
+                      window.location.href = '/medical/clinical-records';
+                    }
+                  }}
                   className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
-                  Volver a HC
-                </a>
+                  {(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    return urlParams.get('backTo') === 'evolutions' ? 'Volver al listado' : 'Volver a HC';
+                  })()}
+                </button>
               </div>
             </div>
           ) : (
@@ -472,7 +492,7 @@ export default function MedicalEvolutionHistory({
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <input
               type="text"
-              placeholder="Buscar por fecha, tipo, médico o HC..."
+              placeholder="Buscar en los resultados..."
               className="flex-1 sm:w-64 px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -924,10 +944,14 @@ export default function MedicalEvolutionHistory({
         isOpen={isRecordModalOpen}
         onClose={handleCloseRecordModal}
         record={selectedRecord}
-        showFooter={false}
+        showFooter={true}
         onEdit={(record) => {
           // Navigate to clinical records page or handle edit if needed
           window.location.href = `/medical/clinical-records?search=${ record.numeroHistoriaClinica }`;
+        }}
+        onViewEvolutions={(record) => {
+          // Navigate to evolutions view for this HC, but adding 'backTo=evolutions' so the back button knows where to go
+          window.location.href = `/medical/evolutions?historiaClinicaId=${ record.id }&backTo=evolutions`;
         }}
       />
     </div>
