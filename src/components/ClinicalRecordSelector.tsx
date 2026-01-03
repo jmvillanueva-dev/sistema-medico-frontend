@@ -38,6 +38,7 @@ export default function ClinicalRecordSelector({
   // HC number search states
   const [hcNumber, setHcNumber] = useState("");
   const [isSearchingHC, setIsSearchingHC] = useState(false);
+  const [foundClinicalRecords, setFoundClinicalRecords] = useState<ClinicalRecord[]>([]);
 
   // Search patients by name/surname/cedula
   const handleSearchPatients = async (e: FormEvent) => {
@@ -94,7 +95,7 @@ export default function ClinicalRecordSelector({
     }
   };
 
-  // Search HC by number
+  // Search HC by number (returns array)
   const handleSearchByNumber = async (e: FormEvent) => {
     e.preventDefault();
     if (!hcNumber.trim()) {
@@ -104,12 +105,22 @@ export default function ClinicalRecordSelector({
 
     setIsSearchingHC(true);
     setSelectedRecord(null);
+    setFoundClinicalRecords([]);
 
     try {
       const response = await getClinicalRecordByNumber(hcNumber.trim());
       if (response.data.success && response.data.data) {
-        setSelectedRecord(response.data.data);
-        toast.success("Historia clínica encontrada");
+        const records = response.data.data;
+        if (records.length === 1) {
+          // Auto-select if only one result
+          setSelectedRecord(records[0]);
+          toast.success("Historia clínica encontrada");
+        } else if (records.length > 1) {
+          setFoundClinicalRecords(records);
+          toast.success(`Se encontraron ${ records.length } historias clínicas`);
+        } else {
+          toast.info("No se encontró ninguna historia clínica con ese número");
+        }
       } else {
         toast.info("No se encontró ninguna historia clínica con ese número");
       }
@@ -125,6 +136,12 @@ export default function ClinicalRecordSelector({
     }
   };
 
+  // Select a clinical record from the search results
+  const handleSelectClinicalRecord = (record: ClinicalRecord) => {
+    setSelectedRecord(record);
+    setFoundClinicalRecords([]);
+  };
+
   const handleConfirmSelection = () => {
     if (selectedRecord) {
       onSelect(selectedRecord);
@@ -134,6 +151,7 @@ export default function ClinicalRecordSelector({
   const handleChangeSelection = () => {
     setSelectedRecord(null);
     setFoundPatients([]);
+    setFoundClinicalRecords([]);
     setPatientSearchTerm("");
     setHcNumber("");
   };
@@ -317,41 +335,83 @@ export default function ClinicalRecordSelector({
 
           {/* HC Number Search */}
           {searchType === "numero" && (
-            <form onSubmit={handleSearchByNumber}>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Número de Historia Clínica
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Ej: 1722965454"
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    value={hcNumber}
-                    onChange={(e) => setHcNumber(e.target.value)}
-                  />
-                  <img
-                    src={SearchIcon.src}
-                    alt="Buscar"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
-                  />
+            <>
+              <form onSubmit={handleSearchByNumber}>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Número de Historia Clínica
+                </label>
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      placeholder="Ej: 1722965454"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      value={hcNumber}
+                      onChange={(e) => setHcNumber(e.target.value)}
+                    />
+                    <img
+                      src={SearchIcon.src}
+                      alt="Buscar"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSearchingHC}
+                    className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isSearchingHC ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      "Buscar"
+                    )}
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isSearchingHC}
-                  className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isSearchingHC ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    "Buscar"
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-slate-500 mt-2">
-                Ingrese el número exacto de la historia clínica que desea buscar
-              </p>
-            </form>
+                <p className="text-xs text-slate-500 mt-2">
+                  Ingrese el número o parte del número de la historia clínica
+                </p>
+              </form>
+
+              {/* HC Search Results */}
+              {foundClinicalRecords.length > 0 && (
+                <div className="mt-4 border border-slate-200 rounded-lg overflow-hidden max-h-80 overflow-y-auto">
+                  <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                    <span className="text-sm font-medium text-slate-700">
+                      {foundClinicalRecords.length} historia(s) clínica(s) encontrada(s)
+                    </span>
+                  </div>
+                  {foundClinicalRecords.map((record) => (
+                    <div
+                      key={record.id}
+                      className="p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center transition-colors"
+                      onClick={() => handleSelectClinicalRecord(record)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                          {record.pacienteNombreCompleto?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                              HC: {record.numeroHistoriaClinica}
+                            </span>
+                          </div>
+                          <div className="font-medium text-slate-900 mt-0.5">
+                            {record.pacienteNombreCompleto || 'Sin Nombre'}
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            Cédula: {record.pacienteCedula}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-primary text-sm font-medium hover:underline">
+                        Seleccionar →
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
