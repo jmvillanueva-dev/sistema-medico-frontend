@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getClinicalRecords, deleteClinicalRecord, getClinicalRecordByNumber, getClinicalRecordByPatientId, searchClinicalRecordsByDate } from "../services/clinicalRecordService";
+import { useDebounce } from "../hooks/useDebounce";
 import { searchPatients } from "../services/patientService";
 import type { ClinicalRecord } from "../types/clinicalRecord";
 import type { Patient } from "../types/patient";
@@ -41,8 +42,8 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   // Advanced search states
   const [searchType, setSearchType] = useState<'all' | 'numero' | 'paciente' | 'fecha'>('all');
   const [advancedSearchTerm, setAdvancedSearchTerm] = useState('');
+  const debouncedAdvancedSearchTerm = useDebounce(advancedSearchTerm, 500);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResult, setSearchResult] = useState<ClinicalRecord | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
   // Patient search states (for 'paciente' search type)
@@ -105,6 +106,32 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     );
   });
 
+  // Debounced search effect for 'numero'
+  useEffect(() => {
+    const performNumberSearch = async () => {
+      if (searchType === 'numero' && debouncedAdvancedSearchTerm.trim()) {
+        setIsSearching(true);
+        setHasSearched(true);
+        try {
+          const response = await getClinicalRecordByNumber(debouncedAdvancedSearchTerm.trim());
+          if (response.data.success) {
+            setRecords(response.data.data);
+            if (response.data.data.length === 0) {
+              toast.info('No se encontró ninguna historia clínica con ese criterio.');
+            }
+          }
+        } catch (err: any) {
+          console.error("Error searching clinical record:", err);
+          // Don't toast error on 404 for partial search, maybe just empty list
+        } finally {
+          setIsSearching(false);
+        }
+      }
+    };
+
+    performNumberSearch();
+  }, [debouncedAdvancedSearchTerm, searchType]);
+
   // Search patients by name/surname/cedula
   const handleSearchPatients = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,19 +162,20 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     setSelectedPatient(patient);
     setIsSearching(true);
     setHasSearched(true);
-    setSearchResult(null);
 
     try {
       const response = await getClinicalRecordByPatientId(patient.id);
       if (response.data.success && response.data.data) {
-        setSearchResult(response.data.data);
+        setRecords([response.data.data]); // Wrap in array for unified display
         toast.success('Historia clínica encontrada');
       } else {
         toast.info(`${ patient.primerNombre } ${ patient.apellidoPaterno } no tiene historia clínica registrada`);
+        setRecords([]);
       }
     } catch (err: any) {
       if (err.response?.status === 404) {
         toast.info(`${ patient.primerNombre } ${ patient.apellidoPaterno } no tiene historia clínica registrada`);
+        setRecords([]);
       } else {
         toast.error('Error al buscar la historia clínica');
         console.error(err);
@@ -157,38 +185,11 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
     }
   };
 
-  // Advanced search handler (for numero search)
-  const handleAdvancedSearch = async (e: React.FormEvent) => {
+  // Advanced search handler (manual submission, though debounce handles it)
+  const handleAdvancedSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (searchType === 'numero') {
-      if (!advancedSearchTerm.trim()) {
-        toast.warning('Ingrese el número de historia clínica');
-        return;
-      }
-
-      setIsSearching(true);
-      setHasSearched(true);
-      setSearchResult(null);
-
-      try {
-        const response = await getClinicalRecordByNumber(advancedSearchTerm.trim());
-        if (response.data.success && response.data.data) {
-          setSearchResult(response.data.data);
-          toast.success('Historia clínica encontrada');
-        } else {
-          toast.info('No se encontró ninguna historia clínica');
-        }
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          toast.info('No se encontró ninguna historia clínica con ese número');
-        } else {
-          toast.error('Error al buscar la historia clínica');
-          console.error(err);
-        }
-      } finally {
-        setIsSearching(false);
-      }
+    if (searchType === 'numero' && !advancedSearchTerm.trim()) {
+      toast.warning('Ingrese el número de historia clínica');
     }
   };
 
@@ -202,7 +203,7 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
 
     setIsSearching(true);
     setHasSearched(true);
-    setSearchResult(null);
+    setHasSearched(true);
     // Clear list to show only results if needed, but here we might want to replace the main list or show a separate result list
     // The current UI pattern shows a single result in "searchResult" for patient/number search, but date search returns a list.
     // We should probably update the main 'records' list or handle it similarly.
@@ -230,7 +231,6 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
   // Clear search and show all records
   const handleClearSearch = () => {
     setAdvancedSearchTerm('');
-    setSearchResult(null);
     setHasSearched(false);
     setSearchType('all');
     setPatientSearchTerm('');
@@ -493,21 +493,6 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <form onSubmit={handleSearch} className="relative w-full sm:w-64">
-            <input
-              type="text"
-              placeholder="Buscar en los resultados..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <img
-              src={SearchIcon.src}
-              alt="Buscar"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-            />
-          </form>
-
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
             <button
@@ -546,7 +531,6 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
                 setSearchType(newType);
                 // Clear search values when changing type (but not the type itself)
                 setAdvancedSearchTerm('');
-                setSearchResult(null);
                 setHasSearched(false);
                 setPatientSearchTerm('');
                 setFoundPatients([]);
@@ -762,57 +746,14 @@ export default function ClinicalRecordsManager({ canDelete = false }: ClinicalRe
           </div>
         )}
 
-        {/* Search Result Display */}
-        {hasSearched && searchType !== 'all' && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            {searchResult ? (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">
-                    {searchResult.pacienteNombreCompleto?.charAt(0) || '?'}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{searchResult.pacienteNombreCompleto}</p>
-                    <p className="text-sm text-slate-500">HC: {searchResult.numeroHistoriaClinica} • Cédula: {searchResult.pacienteCedula}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => handleViewDetails(searchResult)}
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <img src={EyeIcon.src} alt="Ver" className="w-4 h-4" />
-                    Ver Detalles
-                  </button>
-                  <button
-                    onClick={() => window.location.href = `/medical/evolutions?historiaClinicaId=${ searchResult.id }`}
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors"
-                  >
-                    Ver Evoluciones
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-700">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span className="text-sm font-medium">
-                  {selectedPatient
-                    ? `${ selectedPatient.primerNombre } ${ selectedPatient.apellidoPaterno } no tiene historia clínica registrada.`
-                    : 'No se encontró ninguna historia clínica con ese criterio.'}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Search Result Display Removed - Results are shown in main table */}
       </div>
 
       <div className="min-h-[400px]">
         {loading && renderLoading()}
         {error && !loading && renderError()}
-        {!loading && !error && records.length === 0 && renderEmptyState()}
-        {!loading && !error && records.length > 0 && renderContent()}
+        {!loading && !error && filteredRecords.length === 0 && renderEmptyState()}
+        {!loading && !error && filteredRecords.length > 0 && renderContent()}
       </div>
 
       <ConfirmationModal
