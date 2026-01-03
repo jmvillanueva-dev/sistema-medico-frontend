@@ -39,6 +39,9 @@ const getInitialTab = (initialTab?: string): Tab => {
   return "motivo";
 };
 
+import { useAuthStore } from "@/store/authStore";
+import Cookies from "js-cookie";
+
 export default function MedicalEvolutionForm({
   historiaClinicaId,
   empleadoId,
@@ -48,6 +51,8 @@ export default function MedicalEvolutionForm({
   onCancel,
   initialTab,
 }: MedicalEvolutionFormProps) {
+  const { user } = useAuthStore(); // Get user from auth store
+
   // Default navigation handlers
   const handleSuccess = () => {
     if (onSuccess) {
@@ -72,10 +77,10 @@ export default function MedicalEvolutionForm({
   const [isLoading, setIsLoading] = useState(!!evolutionId && !initialData);
   const [loadedData, setLoadedData] = useState<EvolucionMedica | undefined>(initialData);
 
-  const { register, control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<EvolucionMedicaRequest>({
+  const { register, control, handleSubmit, watch, setValue, getValues, reset, formState: { errors } } = useForm<EvolucionMedicaRequest>({
     defaultValues: {
       historiaClinicaId: historiaClinicaId || "",
-      empleadoId: empleadoId || "",
+      empleadoId: empleadoId || user?.employeeId || "", // Use prop or auth store
       tipoConsulta: "CONSULTA EXTERNA",
       fechaConsulta: new Date().toISOString().slice(0, 16),
       observacionesGenerales: "",
@@ -90,6 +95,29 @@ export default function MedicalEvolutionForm({
       altaMedica: {}
     }
   });
+
+  // Ensure employeeId is set (fallback to cookie if store is not ready)
+  useEffect(() => {
+    const currentId = getValues("empleadoId");
+    if (!currentId) {
+      if (user?.employeeId) {
+        setValue("empleadoId", user.employeeId);
+      } else {
+        // Store not ready? Try cookie directly
+        const userCookie = Cookies.get("auth-user");
+        if (userCookie) {
+          try {
+            const parsedUser = JSON.parse(userCookie);
+            if (parsedUser.employeeId) {
+              setValue("empleadoId", parsedUser.employeeId);
+            }
+          } catch (e) {
+            console.error("Error parsing auth cookie", e);
+          }
+        }
+      }
+    }
+  }, [user, setValue, getValues]);
 
   // Fetch data if evolutionId is provided
   useEffect(() => {
@@ -221,7 +249,7 @@ export default function MedicalEvolutionForm({
       {/* Header */}
       <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleCancel}
             className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 text-slate-500"
           >
@@ -256,9 +284,9 @@ export default function MedicalEvolutionForm({
           <span className="font-medium text-primary">{Math.round(progressPercentage)}%</span>
         </div>
         <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-primary to-primary-400 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${ progressPercentage }%` }}
           />
         </div>
       </div>
@@ -269,13 +297,12 @@ export default function MedicalEvolutionForm({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 flex items-center gap-2 ${
-              activeTab === tab.id
-                ? "border-primary text-primary bg-primary/5"
-                : index < currentTabIndex
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 flex items-center gap-2 ${ activeTab === tab.id
+              ? "border-primary text-primary bg-primary/5"
+              : index < currentTabIndex
                 ? "border-transparent text-green-600 hover:bg-green-50"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-            }`}
+              }`}
           >
             {index < currentTabIndex && <span className="text-green-500">✓</span>}
             {tab.label}
@@ -286,7 +313,7 @@ export default function MedicalEvolutionForm({
       {/* Form Content */}
       <div className="p-6 overflow-y-auto flex-1">
         <form className="max-w-5xl mx-auto space-y-8">
-          
+
           {/* TAB: MOTIVO */}
           {activeTab === "motivo" && (
             <div className="space-y-8 animate-fadeIn">
@@ -426,7 +453,7 @@ export default function MedicalEvolutionForm({
                     <div key={field.key}>
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
                       <textarea
-                        {...register(`valoracionClinica.${field.key}` as any)}
+                        {...register(`valoracionClinica.${ field.key }` as any)}
                         rows={2}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                       />
@@ -441,7 +468,7 @@ export default function MedicalEvolutionForm({
                   Antecedentes del Incidente (Opcional)
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   {[
+                  {[
                     { key: "antecedentesPersonales", label: "Personales" },
                     { key: "antecedentesFamiliares", label: "Familiares" },
                     { key: "habitosToxicos", label: "Hábitos Tóxicos" },
@@ -452,7 +479,7 @@ export default function MedicalEvolutionForm({
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
                       <input
                         type="text"
-                        {...register(`antecedentesIncidente.${field.key}` as any)}
+                        {...register(`antecedentesIncidente.${ field.key }` as any)}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
@@ -499,7 +526,7 @@ export default function MedicalEvolutionForm({
                     Agregar Diagnóstico
                   </button>
                 </div>
-                
+
                 <div className="space-y-4">
                   {diagnosticosFields.map((field, index) => (
                     <div key={field.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 relative">
@@ -513,20 +540,20 @@ export default function MedicalEvolutionForm({
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
                           label="CIE-10 (Código)"
-                          {...register(`diagnosticos.${index}.codigoCie`)}
+                          {...register(`diagnosticos.${ index }.codigoCie`)}
                           placeholder="Ej: K35"
                         />
                         <div className="md:col-span-2">
-                           <Input
+                          <Input
                             label="Diagnóstico"
-                            {...register(`diagnosticos.${index}.diagnostico`)}
+                            {...register(`diagnosticos.${ index }.diagnostico`)}
                             placeholder="Descripción del diagnóstico"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo</label>
                           <select
-                            {...register(`diagnosticos.${index}.tipo`)}
+                            {...register(`diagnosticos.${ index }.tipo`)}
                             className="w-full h-11 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                           >
                             <option value="PRESUNTIVO">Presuntivo</option>
@@ -534,9 +561,9 @@ export default function MedicalEvolutionForm({
                           </select>
                         </div>
                         <div className="md:col-span-2">
-                           <Input
+                          <Input
                             label="Observaciones"
-                            {...register(`diagnosticos.${index}.observaciones`)}
+                            {...register(`diagnosticos.${ index }.observaciones`)}
                           />
                         </div>
                       </div>
@@ -601,32 +628,32 @@ export default function MedicalEvolutionForm({
                       <div className="grid grid-cols-1 gap-4">
                         <Input
                           label="Nombre del Tratamiento"
-                          {...register(`planesTratamiento.${index}.nombreTratamiento`)}
+                          {...register(`planesTratamiento.${ index }.nombreTratamiento`)}
                         />
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción / Indicaciones</label>
                           <textarea
-                            {...register(`planesTratamiento.${index}.descripcion`)}
+                            {...register(`planesTratamiento.${ index }.descripcion`)}
                             rows={3}
                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                           <Input
+                          <Input
                             label="Duración"
-                            {...register(`planesTratamiento.${index}.duracion`)}
+                            {...register(`planesTratamiento.${ index }.duracion`)}
                             placeholder="Ej: 7 días"
                           />
                           <Input
                             label="Tipo"
-                            {...register(`planesTratamiento.${index}.tipoTratamiento`)}
+                            {...register(`planesTratamiento.${ index }.tipoTratamiento`)}
                             placeholder="Ej: MEDICAMENTOSO"
                           />
                         </div>
                       </div>
                     </div>
                   ))}
-                   {tratamientosFields.length === 0 && (
+                  {tratamientosFields.length === 0 && (
                     <p className="text-sm text-slate-500 italic text-center py-4">No hay tratamientos registrados.</p>
                   )}
                 </div>
@@ -679,25 +706,25 @@ export default function MedicalEvolutionForm({
                         onClick={() => removeExamen(index)}
                         className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
                       >
-                         <img src={TrashIcon.src} alt="Eliminar" className="w-4 h-4" />
+                        <img src={TrashIcon.src} alt="Eliminar" className="w-4 h-4" />
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input
                           label="Nombre Examen"
-                          {...register(`examenesSolicitados.${index}.nombreExamen`)}
+                          {...register(`examenesSolicitados.${ index }.nombreExamen`)}
                         />
-                         <Input
+                        <Input
                           label="Tipo"
-                          {...register(`examenesSolicitados.${index}.tipoExamen`)}
+                          {...register(`examenesSolicitados.${ index }.tipoExamen`)}
                         />
-                         <Input
+                        <Input
                           label="Indicaciones"
-                          {...register(`examenesSolicitados.${index}.indicaciones`)}
+                          {...register(`examenesSolicitados.${ index }.indicaciones`)}
                         />
-                         <div>
+                        <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1.5">Urgencia</label>
                           <select
-                            {...register(`examenesSolicitados.${index}.urgencia`)}
+                            {...register(`examenesSolicitados.${ index }.urgencia`)}
                             className="w-full h-11 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                           >
                             <option value="RUTINA">Rutina</option>
@@ -707,7 +734,7 @@ export default function MedicalEvolutionForm({
                       </div>
                     </div>
                   ))}
-                   {examenesFields.length === 0 && (
+                  {examenesFields.length === 0 && (
                     <p className="text-sm text-slate-500 italic text-center py-4">No hay exámenes solicitados.</p>
                   )}
                 </div>
