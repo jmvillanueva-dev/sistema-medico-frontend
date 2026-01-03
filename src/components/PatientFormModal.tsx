@@ -12,6 +12,12 @@ import type {
 } from "../types/patient";
 import type { CatalogItem } from "../types/catalog";
 import { toast } from "react-toastify";
+import {
+  patientSchema,
+  emergencyContactSchema,
+  clinicalHistorySchema,
+} from "../lib/validations/patient";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface PatientFormModalProps {
   isOpen: boolean;
@@ -31,6 +37,8 @@ export default function PatientFormModal({
   const [activeTab, setActiveTab] = useState<Tab>("personal");
   const [isLoading, setIsLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   // Obtener catálogos del store (ya cacheados)
   const { getCatalog, loadCatalogs, isLoaded } = useCatalogStore();
@@ -173,70 +181,132 @@ export default function PatientFormModal({
     }
   }, [isOpen, patient, isLoaded, loadCatalogs]);
 
+  const validateField = (name: string, value: any) => {
+    // 1. Array Fields (Contactos Emergencia)
+    if (name.startsWith("contactosEmergencia.")) {
+      const parts = name.split(".");
+      if (parts.length === 3) {
+        const fieldName = parts[2];
+        if (fieldName in emergencyContactSchema.shape) {
+          const fieldSchema =
+            emergencyContactSchema.shape[
+            fieldName as keyof typeof emergencyContactSchema.shape
+            ];
+          const result = fieldSchema.safeParse(value);
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            if (!result.success) {
+              newErrors[name] = result.error.errors[0].message;
+            } else {
+              delete newErrors[name];
+            }
+            return newErrors;
+          });
+        }
+      }
+      return;
+    }
+
+    // 2. Array Fields (Antecedentes Clínicos)
+    if (name.startsWith("antecedentesClinicos.")) {
+      const parts = name.split(".");
+      if (parts.length === 3) {
+        const fieldName = parts[2];
+        if (fieldName in clinicalHistorySchema.shape) {
+          const fieldSchema =
+            clinicalHistorySchema.shape[
+            fieldName as keyof typeof clinicalHistorySchema.shape
+            ];
+          const result = fieldSchema.safeParse(value);
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            if (!result.success) {
+              newErrors[name] = result.error.errors[0].message;
+            } else {
+              delete newErrors[name];
+            }
+            return newErrors;
+          });
+        }
+      }
+      return;
+    }
+
+    // 3. Regular Fields
+    if (name in patientSchema.shape) {
+      const fieldSchema =
+        patientSchema.shape[name as keyof typeof patientSchema.shape];
+      const result = fieldSchema.safeParse(value);
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        if (!result.success) {
+          newErrors[name] = result.error.errors[0].message;
+        } else {
+          delete newErrors[name];
+        }
+        return newErrors;
+      });
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     const { name, value, type } = e.target;
+    const newValue =
+      type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]: newValue,
     }));
     setIsDirty(true);
+    validateField(name, newValue);
   };
 
   const handleClose = () => {
     if (isDirty) {
-      if (
-        window.confirm(
-          "Tienes cambios sin guardar. ¿Estás seguro de que deseas cerrar?"
-        )
-      ) {
-        onClose();
-      }
+      setShowConfirmClose(true);
     } else {
       onClose();
     }
   };
 
+  const handleConfirmClose = () => {
+    setShowConfirmClose(false);
+    onClose();
+  };
+
   const validateForm = () => {
-    // 1. Campos Obligatorios
-    if (!formData.cedula) return "La cédula es obligatoria";
-    if (!formData.primerNombre) return "El primer nombre es obligatorio";
-    if (!formData.apellidoPaterno) return "El apellido paterno es obligatorio";
-    if (!formData.fechaNacimiento) return "La fecha de nacimiento es obligatoria";
-    if (!formData.generoId) return "El género es obligatorio";
+    const result = patientSchema.safeParse(formData);
 
-    // 2. Formato de Email
-    if (formData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        return "El formato del correo electrónico no es válido";
-      }
-    }
-
-    // 3. Contactos de Emergencia
-    if (formData.contactosEmergencia.length > 0) {
-      for (let i = 0; i < formData.contactosEmergencia.length; i++) {
-        const contact = formData.contactosEmergencia[i];
-        if (!contact.nombre || !contact.parentescoId || !contact.telefono) {
-          return `El contacto de emergencia #${i + 1} debe tener nombre, parentesco y teléfono`;
+    if (!result.success) {
+      const newErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path.length > 0) {
+          // Handle simple fields
+          if (typeof err.path[0] === "string" && err.path.length === 1) {
+            newErrors[err.path[0]] = err.message;
+          }
+          // Handle array fields: contactosEmergencia.0.nombre
+          if (
+            err.path.length === 3 &&
+            (err.path[0] === "contactosEmergencia" ||
+              err.path[0] === "antecedentesClinicos")
+          ) {
+            const key = `${ err.path[0] }.${ err.path[1] }.${ err.path[2] }`;
+            newErrors[key] = err.message;
+          }
         }
-      }
+      });
+      setErrors(newErrors);
+      // Return first error message for toast
+      return result.error.errors[0].message;
     }
 
-    // 4. Antecedentes Clínicos
-    if (formData.antecedentesClinicos.length > 0) {
-      for (let i = 0; i < formData.antecedentesClinicos.length; i++) {
-        const history = formData.antecedentesClinicos[i];
-        if (!history.tipoAntecedenteId || !history.patologiaId) {
-          return `El antecedente clínico #${i + 1} debe tener tipo y patología`;
-        }
-      }
-    }
-
+    setErrors({});
     return null;
   };
 
@@ -318,6 +388,7 @@ export default function PatientFormModal({
     newContacts[index] = { ...newContacts[index], [field]: value };
     setFormData((prev) => ({ ...prev, contactosEmergencia: newContacts }));
     setIsDirty(true);
+    validateField(`contactosEmergencia.${ index }.${ field }`, value);
   };
 
   const removeEmergencyContact = (index: number) => {
@@ -356,6 +427,7 @@ export default function PatientFormModal({
     newHistory[index] = { ...newHistory[index], [field]: value };
     setFormData((prev) => ({ ...prev, antecedentesClinicos: newHistory }));
     setIsDirty(true);
+    validateField(`antecedentesClinicos.${ index }.${ field }`, value);
   };
 
   const removeClinicalHistory = (index: number) => {
@@ -404,11 +476,10 @@ export default function PatientFormModal({
             ].map((tab) => (
               <button
                 key={tab.id}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all text-left ${
-                  activeTab === tab.id
-                    ? "bg-white text-primary shadow-sm ring-1 ring-slate-200"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all text-left ${ activeTab === tab.id
+                  ? "bg-white text-primary shadow-sm ring-1 ring-slate-200"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
                 onClick={() => setActiveTab(tab.id as Tab)}
               >
                 {/* Simple icons based on tab content */}
@@ -521,6 +592,8 @@ export default function PatientFormModal({
                   name="cedula"
                   value={formData.cedula}
                   onChange={handleChange}
+                  placeholder="ej: 1712345678"
+                  error={errors.cedula}
                   required
                 />
                 <Input
@@ -528,6 +601,8 @@ export default function PatientFormModal({
                   name="primerNombre"
                   value={formData.primerNombre}
                   onChange={handleChange}
+                  placeholder="ej: Juan"
+                  error={errors.primerNombre}
                   required
                 />
                 <Input
@@ -535,12 +610,16 @@ export default function PatientFormModal({
                   name="segundoNombre"
                   value={formData.segundoNombre || ""}
                   onChange={handleChange}
+                  placeholder="ej: Andrés"
+                  error={errors.segundoNombre}
                 />
                 <Input
                   label="Apellido Paterno *"
                   name="apellidoPaterno"
                   value={formData.apellidoPaterno}
                   onChange={handleChange}
+                  placeholder="ej: Pérez"
+                  error={errors.apellidoPaterno}
                   required
                 />
                 <Input
@@ -548,6 +627,8 @@ export default function PatientFormModal({
                   name="apellidoMaterno"
                   value={formData.apellidoMaterno || ""}
                   onChange={handleChange}
+                  placeholder="ej: López"
+                  error={errors.apellidoMaterno}
                 />
                 <Input
                   type="date"
@@ -555,6 +636,7 @@ export default function PatientFormModal({
                   name="fechaNacimiento"
                   value={formData.fechaNacimiento}
                   onChange={handleChange}
+                  error={errors.fechaNacimiento}
                   required
                 />
                 <Input
@@ -562,6 +644,8 @@ export default function PatientFormModal({
                   name="lugarNacimiento"
                   value={formData.lugarNacimiento}
                   onChange={handleChange}
+                  placeholder="ej: Quito"
+                  error={errors.lugarNacimiento}
                 />
 
                 <div className="flex flex-col gap-1">
@@ -664,6 +748,8 @@ export default function PatientFormModal({
                   name="nacionalidad"
                   value={formData.nacionalidad}
                   onChange={handleChange}
+                  placeholder="ej: Ecuatoriana"
+                  error={errors.nacionalidad}
                 />
               </div>
             )}
@@ -676,12 +762,16 @@ export default function PatientFormModal({
                   name="email"
                   value={formData.email || ""}
                   onChange={handleChange}
+                  placeholder="ej: juan.perez@email.com"
+                  error={errors.email}
                 />
                 <Input
                   label="Teléfono"
                   name="telefono"
                   value={formData.telefono || ""}
                   onChange={handleChange}
+                  placeholder="ej: 0995910820 / 0999158964"
+                  error={errors.telefono}
                 />
                 <Input
                   label="Dirección"
@@ -689,6 +779,8 @@ export default function PatientFormModal({
                   value={formData.direccion}
                   onChange={handleChange}
                   className="md:col-span-2"
+                  placeholder="ej: Av. Amazonas y Naciones Unidas"
+                  error={errors.direccion}
                 />
 
                 <div className="flex flex-col gap-1">
@@ -715,12 +807,16 @@ export default function PatientFormModal({
                   name="canton"
                   value={formData.canton}
                   onChange={handleChange}
+                  placeholder="ej: Quito"
+                  error={errors.canton}
                 />
                 <Input
                   label="Parroquia"
                   name="parroquia"
                   value={formData.parroquia}
                   onChange={handleChange}
+                  placeholder="ej: Iñaquito"
+                  error={errors.parroquia}
                 />
 
                 <div className="md:col-span-2 border-t border-slate-200 pt-6 mt-2">
@@ -767,18 +863,24 @@ export default function PatientFormModal({
                       name="nombreFuenteInfo"
                       value={formData.nombreFuenteInfo || ""}
                       onChange={handleChange}
+                      placeholder="ej: María Pérez"
+                      error={errors.nombreFuenteInfo}
                     />
                     <Input
                       label="Teléfono Fuente"
                       name="telefonoFuenteInfo"
                       value={formData.telefonoFuenteInfo || ""}
                       onChange={handleChange}
+                      placeholder="ej: 0995910820"
+                      error={errors.telefonoFuenteInfo}
                     />
                     <Input
                       label="Observaciones"
                       name="observacionesFuente"
                       value={formData.observacionesFuente || ""}
                       onChange={handleChange}
+                      placeholder="ej: Familiar cercano"
+                      error={errors.observacionesFuente}
                     />
                   </div>
                 </div>
@@ -810,24 +912,32 @@ export default function PatientFormModal({
                   name="nombreEmpresa"
                   value={formData.nombreEmpresa || ""}
                   onChange={handleChange}
+                  placeholder="ej: Empresa S.A."
+                  error={errors.nombreEmpresa}
                 />
                 <Input
                   label="Cargo"
                   name="cargo"
                   value={formData.cargo || ""}
                   onChange={handleChange}
+                  placeholder="ej: Gerente"
+                  error={errors.cargo}
                 />
                 <Input
                   label="Teléfono Empresa"
                   name="telefonoEmpresa"
                   value={formData.telefonoEmpresa || ""}
                   onChange={handleChange}
+                  placeholder="ej: 022999999"
+                  error={errors.telefonoEmpresa}
                 />
                 <Input
                   label="Dirección Empresa"
                   name="direccionEmpresa"
                   value={formData.direccionEmpresa || ""}
                   onChange={handleChange}
+                  placeholder="ej: Av. 10 de Agosto"
+                  error={errors.direccionEmpresa}
                 />
                 <Input
                   type="date"
@@ -835,6 +945,7 @@ export default function PatientFormModal({
                   name="fechaInicio"
                   value={formData.fechaInicio || ""}
                   onChange={handleChange}
+                  error={errors.fechaInicio}
                 />
                 <Input
                   type="date"
@@ -842,6 +953,7 @@ export default function PatientFormModal({
                   name="fechaFin"
                   value={formData.fechaFin || ""}
                   onChange={handleChange}
+                  error={errors.fechaFin}
                 />
 
                 <div className="flex items-center gap-2 mt-6">
@@ -951,6 +1063,8 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          placeholder="ej: Juan Pérez"
+                          error={errors[`contactosEmergencia.${ index }.nombre`]}
                         />
                         <div className="flex flex-col gap-1">
                           <label className="text-sm font-medium text-slate-700">
@@ -974,6 +1088,11 @@ export default function PatientFormModal({
                               </option>
                             ))}
                           </select>
+                          {errors[`contactosEmergencia.${ index }.parentescoId`] && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {errors[`contactosEmergencia.${ index }.parentescoId`]}
+                            </p>
+                          )}
                         </div>
                         <Input
                           label="Teléfono"
@@ -985,6 +1104,8 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          placeholder="ej: 0995910820"
+                          error={errors[`contactosEmergencia.${ index }.telefono`]}
                         />
                         <Input
                           label="Dirección"
@@ -996,6 +1117,8 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          placeholder="ej: Av. Amazonas"
+                          error={errors[`contactosEmergencia.${ index }.direccion`]}
                         />
                       </div>
                     </div>
@@ -1104,6 +1227,11 @@ export default function PatientFormModal({
                               </option>
                             ))}
                           </select>
+                          {errors[`antecedentesClinicos.${ index }.tipoAntecedenteId`] && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {errors[`antecedentesClinicos.${ index }.tipoAntecedenteId`]}
+                            </p>
+                          )}
                         </div>
                         <div className="flex flex-col gap-1">
                           <label className="text-sm font-medium text-slate-700">
@@ -1127,6 +1255,11 @@ export default function PatientFormModal({
                               </option>
                             ))}
                           </select>
+                          {errors[`antecedentesClinicos.${ index }.patologiaId`] && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {errors[`antecedentesClinicos.${ index }.patologiaId`]}
+                            </p>
+                          )}
                         </div>
                         <Input
                           label="Descripción"
@@ -1138,6 +1271,8 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          placeholder="ej: Detalles adicionales..."
+                          error={errors[`antecedentesClinicos.${ index }.descripcion`]}
                         />
                         <Input
                           type="date"
@@ -1150,6 +1285,7 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          error={errors[`antecedentesClinicos.${ index }.fechaDiagnostico`]}
                         />
                         <Input
                           label="Tratamiento"
@@ -1161,6 +1297,8 @@ export default function PatientFormModal({
                               e.target.value
                             )
                           }
+                          placeholder="ej: Paracetamol 500mg"
+                          error={errors[`antecedentesClinicos.${ index }.tratamiento`]}
                         />
                         <div className="flex items-center gap-2 mt-8">
                           <input
@@ -1188,6 +1326,17 @@ export default function PatientFormModal({
           </div>
         </div>
       </div>
-    </Modal>
+
+
+      <ConfirmationModal
+        isOpen={showConfirmClose}
+        title="Cancelar Operación"
+        message="Tienes cambios sin guardar. ¿Estás seguro de que deseas cerrar?"
+        onConfirm={handleConfirmClose}
+        onCancel={() => setShowConfirmClose(false)}
+        confirmButtonText="Sí, cerrar"
+        cancelButtonText="No, continuar"
+      />
+    </Modal >
   );
 }
