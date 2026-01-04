@@ -207,27 +207,31 @@ export default function MedicalEvolutionDetail({
 
         {/* --- Header Actions Bar --- */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center print:hidden gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
-            {/* Patient Info Header (Moved to Left with Label) */}
+          <div className="flex flex-col items-start gap-3 w-full xl:w-auto">
+            {/* Patient Info Header - Improved Mobile Layout */}
             {patientData && (
-              <div className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm w-full sm:w-auto relative">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm w-full relative">
                 <span className="absolute -top-2 left-4 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                   Paciente
                 </span>
-                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base shrink-0 border border-blue-100 mt-1">
-                  {patientData.primerNombre.charAt(0)}{patientData.apellidoPaterno.charAt(0)}
-                </div>
-                <div className="flex flex-col mt-1">
-                  <span className="text-sm font-bold text-slate-800 leading-tight">{clinicalRecord?.pacienteNombreCompleto}</span>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <span>HC: {clinicalRecord?.numeroHistoriaClinica}</span>
-                    <span>•</span>
-                    <span>CI: {clinicalRecord?.pacienteCedula}</span>
+                {/* Main info row */}
+                <div className="flex items-center gap-3 w-full sm:w-auto mt-1">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base shrink-0 border border-blue-100">
+                    {patientData.primerNombre.charAt(0)}{patientData.apellidoPaterno.charAt(0)}
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-sm font-bold text-slate-800 leading-tight truncate">{clinicalRecord?.pacienteNombreCompleto}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                      <span className="whitespace-nowrap">HC: {clinicalRecord?.numeroHistoriaClinica}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="whitespace-nowrap">CI: {clinicalRecord?.pacienteCedula}</span>
+                    </div>
                   </div>
                 </div>
+                {/* Button below on mobile, right on larger screens */}
                 <button
                   onClick={() => setPatientModalOpen(true)}
-                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 hover:bg-blue-50 rounded transition-colors"
+                  className="w-full sm:w-auto sm:ml-auto text-xs text-blue-600 hover:text-blue-800 font-medium px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
                 >
                   Ver Ficha
                 </button>
@@ -379,35 +383,38 @@ export default function MedicalEvolutionDetail({
             {/* Diagnósticos Table */}
             {evolution.diagnosticos && evolution.diagnosticos.length > 0 && (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center gap-2">
+                <div className="bg-slate-50 px-4 sm:px-5 py-3 border-b border-slate-200 flex items-center gap-2">
                   <img src={ClipboardIcon.src} className="w-4 h-4 text-slate-500" alt="" />
                   <h3 className="font-bold text-slate-800 uppercase text-sm">Diagnósticos (CIE-10)</h3>
                 </div>
-                <table className="w-full text-left">
-                  <thead className="bg-white text-xs uppercase text-slate-500 border-b border-slate-100">
-                    <tr>
-                      <th className="px-5 py-3 font-semibold">Código</th>
-                      <th className="px-5 py-3 font-semibold w-full">Diagnóstico</th>
-                      <th className="px-5 py-3 font-semibold">Tipo</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {evolution.diagnosticos.map((d, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50">
-                        <td className="px-5 py-3 text-sm font-mono font-bold text-slate-600">{d.codigoCie || "-"}</td>
-                        <td className="px-5 py-3 text-sm text-slate-800 font-medium">
-                          {d.diagnostico}
-                          {d.observaciones && <div className="text-xs text-slate-500 mt-0.5 font-normal">{d.observaciones}</div>}
-                        </td>
-                        <td className="px-5 py-3">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide ${ d.tipo === 'DEFINITIVO' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100' }`}>
-                            {d.tipo}
-                          </span>
-                        </td>
+                {/* Horizontal scroll wrapper for mobile */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-white text-xs uppercase text-slate-500 border-b border-slate-100">
+                      <tr>
+                        <th className="px-3 sm:px-5 py-3 font-semibold whitespace-nowrap">Código</th>
+                        <th className="px-3 sm:px-5 py-3 font-semibold min-w-[200px]">Diagnóstico</th>
+                        <th className="px-3 sm:px-5 py-3 font-semibold whitespace-nowrap">Tipo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {evolution.diagnosticos.map((d, i) => (
+                        <tr key={i} className="hover:bg-slate-50/50">
+                          <td className="px-3 sm:px-5 py-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">{d.codigoCie || "-"}</td>
+                          <td className="px-3 sm:px-5 py-3 text-sm text-slate-800 font-medium">
+                            {d.diagnostico}
+                            {d.observaciones && <div className="text-xs text-slate-500 mt-0.5 font-normal">{d.observaciones}</div>}
+                          </td>
+                          <td className="px-3 sm:px-5 py-3 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide ${ d.tipo === 'DEFINITIVO' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100' }`}>
+                              {d.tipo}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
