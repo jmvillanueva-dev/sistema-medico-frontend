@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 interface DateSelectorProps {
   selectedDate: Date;
@@ -9,8 +9,35 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   selectedDate,
   onDateChange,
 }) => {
+  // Track screen size for responsive behavior
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Day initials for mobile (Spanish)
+  const dayInitials: { [key: number]: string } = {
+    0: "D", // Domingo
+    1: "L", // Lunes
+    2: "M", // Martes
+    3: "X", // Miércoles (X to differentiate from Martes)
+    4: "J", // Jueves
+    5: "V", // Viernes
+    6: "S", // Sábado
+  };
+
   // Helper functions
   const formatDay = (date: Date): string => {
+    if (isMobile) {
+      return dayInitials[date.getDay()];
+    }
     return date.toLocaleDateString("es-ES", { weekday: "short" });
   };
 
@@ -34,10 +61,13 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     return isSameDay(date, new Date());
   };
 
-  // Generate 7 days for display (3 before, selected, 3 after)
+  // Generate days for display
+  // Mobile: 5 days (2 before, selected, 2 after)
+  // Desktop: 7 days (3 before, selected, 3 after)
   const generateDays = (): Date[] => {
     const days: Date[] = [];
-    for (let i = -3; i <= 3; i++) {
+    const range = isMobile ? 2 : 3;
+    for (let i = -range; i <= range; i++) {
       const date = new Date(selectedDate);
       date.setDate(selectedDate.getDate() + i);
       days.push(date);
@@ -67,34 +97,35 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   };
 
   const days = generateDays();
+  const gridCols = isMobile ? "grid-cols-5" : "grid-cols-7";
 
   return (
-    <div className="w-full bg-white rounded-xl border border-slate-200 p-4">
+    <div className="w-full bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
       {/* Header with month/year and Today button */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-slate-900 capitalize">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 capitalize">
           {formatMonthYear(selectedDate)}
         </h2>
         <button
           onClick={handleToday}
-          className="px-4 py-2 text-sm font-medium text-primary hover:bg-blue-50 rounded-lg transition-colors"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-primary hover:bg-blue-50 rounded-lg transition-colors"
         >
           Hoy
         </button>
       </div>
 
       {/* Calendar navigation */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {/* Previous button */}
         <button
           onClick={handlePreviousWeek}
-          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+          className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors flex-shrink-0"
           aria-label="Semana anterior"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -106,8 +137,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           </svg>
         </button>
 
-        {/* Days container */}
-        <div className="flex-1 grid grid-cols-7 gap-2">
+        {/* Days container with proper gap */}
+        <div className={`flex-1 grid ${ gridCols } gap-1 sm:gap-2`}>
           {days.map((day, index) => {
             const isSelected = isSameDay(day, selectedDate);
             const isTodayDay = isToday(day);
@@ -117,19 +148,18 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={`
-                  flex flex-col items-center justify-center p-3 rounded-lg transition-all
-                  ${
-                    isSelected
-                      ? "bg-primary text-white shadow-md"
-                      : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  flex flex-col items-center justify-center p-1.5 sm:p-3 rounded-lg transition-all min-w-0
+                  ${ isSelected
+                    ? "bg-primary text-white shadow-md"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100"
                   }
-                  ${isTodayDay && !isSelected ? "ring-2 ring-primary ring-opacity-50" : ""}
+                  ${ isTodayDay && !isSelected ? "ring-2 ring-primary ring-opacity-50" : "" }
                 `}
               >
-                <span className="text-xs font-medium capitalize mb-1">
+                <span className="text-[10px] sm:text-xs font-medium capitalize mb-0.5 sm:mb-1">
                   {formatDay(day)}
                 </span>
-                <span className="text-lg font-bold">
+                <span className="text-sm sm:text-lg font-bold">
                   {formatDayNumber(day)}
                 </span>
               </button>
@@ -140,13 +170,13 @@ const DateSelector: React.FC<DateSelectorProps> = ({
         {/* Next button */}
         <button
           onClick={handleNextWeek}
-          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+          className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors flex-shrink-0"
           aria-label="Semana siguiente"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -163,3 +193,4 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 };
 
 export default DateSelector;
+

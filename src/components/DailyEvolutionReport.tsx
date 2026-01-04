@@ -19,7 +19,7 @@ const DailyEvolutionReport: React.FC = () => {
     if (typeof window === 'undefined') {
       return new Date();
     }
-    
+
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
@@ -48,7 +48,7 @@ const DailyEvolutionReport: React.FC = () => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return `${ year }-${ month }-${ day }`;
   };
 
   // Fetch evolutions when date changes
@@ -65,7 +65,7 @@ const DailyEvolutionReport: React.FC = () => {
         console.error("Error fetching daily report:", err);
         setError(
           err.response?.data?.message ||
-            "No se pudo cargar el reporte. Por favor, intenta de nuevo."
+          "No se pudo cargar el reporte. Por favor, intenta de nuevo."
         );
       } finally {
         setIsLoading(false);
@@ -198,22 +198,24 @@ const DailyEvolutionReport: React.FC = () => {
         {/* Evolution Cards Grid */}
         {!isLoading && !error && evolutions.length > 0 && (
           <div>
-            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4 pb-3 border-b border-slate-200">
               <h2 className="text-lg font-semibold text-slate-900">
                 Evoluciones Médicas
               </h2>
-              <span className="text-slate-400">|</span>
-              <span className="text-sm text-slate-600">
-                Fecha: <span className="font-semibold">{selectedDate.toLocaleDateString("es-ES", { 
-                  day: "numeric", 
-                  month: "long", 
-                  year: "numeric" 
-                })}</span>
-              </span>
-              <span className="text-slate-400">|</span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
-                Total: {evolutions.length}
-              </span>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <span className="hidden sm:inline text-slate-400">|</span>
+                <span className="text-sm text-slate-600">
+                  Fecha: <span className="font-semibold">{selectedDate.toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  })}</span>
+                </span>
+                <span className="text-slate-400">|</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  Total: {evolutions.length}
+                </span>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {evolutions.map((evolution) => (
@@ -331,7 +333,7 @@ const DailyEvolutionReport: React.FC = () => {
           setIsClinicalRecordModalOpen(false);
           setSelectedClinicalRecord(null);
         }}
-        title={selectedClinicalRecord ? `Historia Clínica #${selectedClinicalRecord.numeroHistoriaClinica}` : "Historia Clínica"}
+        title={selectedClinicalRecord ? `Historia Clínica #${ selectedClinicalRecord.numeroHistoriaClinica }` : "Historia Clínica"}
         size="lg"
       >
         {isLoadingModal ? (
@@ -388,7 +390,7 @@ const DailyEvolutionReport: React.FC = () => {
               </Button>
               <Button
                 onClick={() => {
-                  window.location.href = `/medical/evolutions?historiaClinicaId=${selectedClinicalRecord.id}`;
+                  window.location.href = `/medical/evolutions?historiaClinicaId=${ selectedClinicalRecord.id }`;
                 }}
               >
                 Ver Evoluciones
