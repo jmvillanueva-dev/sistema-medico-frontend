@@ -48,6 +48,12 @@ export const hasPermission = (roles: string[], pathname: string): boolean => {
     return hasAdmin && hasMedical;
   }
 
+  // Ruta de perfil - accesible para cualquier usuario autenticado
+  if (pathname === "/profile" || pathname.startsWith("/profile/")) {
+    // Si tiene al menos un rol válido, puede acceder a su perfil
+    return roles.length > 0;
+  }
+
   // Por defecto, denegar acceso a rutas no especificadas
   return false;
 };
