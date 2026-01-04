@@ -1,7 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { getDashboardPath, hasPermission } from "@/utils/navigation";
 
-const protectedPaths = ["/admin", "/medical", "/select-module"];
+const protectedPaths = ["/admin", "/medical", "/select-module", "/profile"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
