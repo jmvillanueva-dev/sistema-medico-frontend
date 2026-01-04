@@ -251,28 +251,50 @@ export default function MedicalEvolutionForm({
         <div className="flex items-center gap-3">
           <button
             onClick={handleCancel}
-            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 text-slate-500"
+            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 text-slate-500 sm:hidden"
           >
             <img src={ArrowLeftIcon.src} alt="Volver" className="w-5 h-5" />
           </button>
-          <h2 className="text-lg font-bold text-slate-800">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800">
             {evolutionId ? "Editar Evolución" : "Nueva Evolución Médica"}
           </h2>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
+          {/* Desktop: botones con texto completo */}
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+            className="hidden sm:flex px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
           >
             Cancelar
           </button>
+          {/* Mobile: botón de cancelar SOLO ICONO */}
+          <button
+            onClick={handleCancel}
+            className="sm:hidden p-2.5 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+            title="Cancelar"
+            aria-label="Cancelar"
+          >
+            <img src={ArrowLeftIcon.src} alt="" className="w-5 h-5" />
+          </button>
+          {/* Desktop: botón guardar con texto */}
           <button
             onClick={handleSubmit(onSubmitForm)}
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <img src={SaveIcon.src} alt="Guardar" className="w-4 h-4" />
             {isSubmitting ? "Guardando..." : "Guardar Evolución"}
+          </button>
+          {/* Mobile: botón guardar SOLO ICONO */}
+          <button
+            onClick={handleSubmit(onSubmitForm)}
+            disabled={isSubmitting}
+            className="sm:hidden p-2.5 text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            title="Guardar"
+            aria-label="Guardar evolución"
+          >
+            {!isSubmitting && <img src={SaveIcon.src} alt="" className="w-5 h-5" />}
+            {isSubmitting && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
           </button>
         </div>
       </div>

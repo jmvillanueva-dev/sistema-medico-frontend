@@ -160,33 +160,33 @@ export default function ClinicalRecordSelector({
     <div className="w-full max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
           Seleccionar Historia Clínica
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-xs sm:text-sm text-slate-500">
           Busque y seleccione la historia clínica del paciente para crear una nueva evolución médica
         </p>
       </div>
 
       {/* Selected Record Display */}
       {selectedRecord && (
-        <div className="mb-6 p-6 bg-green-50 border-2 border-green-200 rounded-xl">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-lg shrink-0">
-                <img src={CheckIcon.src} alt="Seleccionado" className="w-6 h-6" />
+        <div className="mb-6 p-4 sm:p-6 bg-green-50 border-2 border-green-200 rounded-xl">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
+                <img src={CheckIcon.src} alt="Seleccionado" className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
                     HC: {selectedRecord.numeroHistoriaClinica}
                   </span>
                   <span className="text-xs text-green-600">✓ Seleccionada</span>
                 </div>
-                <h3 className="font-bold text-slate-900 text-lg">
+                <h3 className="font-bold text-slate-900 text-base sm:text-lg break-words">
                   {selectedRecord.pacienteNombreCompleto}
                 </h3>
-                <p className="text-sm text-slate-600">
+                <p className="text-xs sm:text-sm text-slate-600">
                   Cédula: {selectedRecord.pacienteCedula}
                 </p>
                 {selectedRecord.totalEvoluciones > 0 && (
@@ -196,16 +196,16 @@ export default function ClinicalRecordSelector({
                 )}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <button
                 onClick={handleChangeSelection}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 Cambiar
               </button>
               <button
                 onClick={handleConfirmSelection}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                className="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm whitespace-nowrap"
               >
                 Continuar →
               </button>
@@ -229,14 +229,14 @@ export default function ClinicalRecordSelector({
                   setHcNumber("");
                   setFoundPatients([]);
                 }}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${ searchType === "paciente"
+                className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${ searchType === "paciente"
                   ? "border-primary bg-primary/5 text-primary font-medium"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                   }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <img src={PatientIcon.src} alt="Paciente" className="w-5 h-5" />
-                  <span>Paciente</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+                  <img src={PatientIcon.src} alt="Paciente" className="w-4 sm:w-5 h-4 sm:h-5" />
+                  <span className="text-xs sm:text-sm">Paciente</span>
                 </div>
               </button>
               <button
@@ -245,14 +245,14 @@ export default function ClinicalRecordSelector({
                   setPatientSearchTerm("");
                   setFoundPatients([]);
                 }}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${ searchType === "numero"
+                className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${ searchType === "numero"
                   ? "border-primary bg-primary/5 text-primary font-medium"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                   }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <img src={ClipboardIcon.src} alt="HC" className="w-5 h-5" />
-                  <span>N° Historia Clínica</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+                  <img src={ClipboardIcon.src} alt="HC" className="w-4 sm:w-5 h-4 sm:h-5" />
+                  <span className="text-xs sm:text-sm">N° HC</span>
                 </div>
               </button>
             </div>
@@ -262,15 +262,15 @@ export default function ClinicalRecordSelector({
           {searchType === "paciente" && (
             <div>
               <form onSubmit={handleSearchPatients} className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
                   Buscar paciente por nombre, apellido o cédula
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 relative">
                     <input
                       type="text"
                       placeholder="Ej: Juan Pérez o 1712345678"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      className="w-full pl-10 pr-4 py-2 sm:py-3 border border-slate-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       value={patientSearchTerm}
                       onChange={(e) => setPatientSearchTerm(e.target.value)}
                     />
@@ -283,7 +283,7 @@ export default function ClinicalRecordSelector({
                   <button
                     type="submit"
                     disabled={isSearchingPatients}
-                    className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isSearchingPatients ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -298,33 +298,33 @@ export default function ClinicalRecordSelector({
               {foundPatients.length > 0 && (
                 <div className="border border-slate-200 rounded-lg overflow-hidden max-h-80 overflow-y-auto">
                   <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="text-xs sm:text-sm font-medium text-slate-700">
                       {foundPatients.length} paciente(s) encontrado(s)
                     </span>
                   </div>
                   {foundPatients.map((patient) => (
                     <div
                       key={patient.id}
-                      className="p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center transition-colors"
+                      className="p-3 sm:p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
                       onClick={() => handleSelectPatient(patient)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
                           {patient.primerNombre.charAt(0)}
                           {patient.apellidoPaterno.charAt(0)}
                         </div>
-                        <div>
-                          <div className="font-medium text-slate-900">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-slate-900 text-sm sm:text-base break-words">
                             {patient.primerNombre} {patient.segundoNombre || ""}{" "}
                             {patient.apellidoPaterno} {patient.apellidoMaterno || ""}
                           </div>
-                          <div className="text-sm text-slate-500">
+                          <div className="text-xs sm:text-sm text-slate-500 mt-0.5">
                             Cédula: {patient.cedula}
                           </div>
                         </div>
-                      </div>
-                      <div className="text-primary text-sm font-medium hover:underline">
-                        Seleccionar →
+                        <div className="text-primary text-xs sm:text-sm font-medium hover:underline shrink-0">
+                          Seleccionar →
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -337,15 +337,15 @@ export default function ClinicalRecordSelector({
           {searchType === "numero" && (
             <>
               <form onSubmit={handleSearchByNumber}>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
                   Número de Historia Clínica
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 relative">
                     <input
                       type="text"
                       placeholder="Ej: 1722965454"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      className="w-full pl-10 pr-4 py-2 sm:py-3 border border-slate-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       value={hcNumber}
                       onChange={(e) => setHcNumber(e.target.value)}
                     />
@@ -358,7 +358,7 @@ export default function ClinicalRecordSelector({
                   <button
                     type="submit"
                     disabled={isSearchingHC}
-                    className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isSearchingHC ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -376,36 +376,36 @@ export default function ClinicalRecordSelector({
               {foundClinicalRecords.length > 0 && (
                 <div className="mt-4 border border-slate-200 rounded-lg overflow-hidden max-h-80 overflow-y-auto">
                   <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="text-xs sm:text-sm font-medium text-slate-700">
                       {foundClinicalRecords.length} historia(s) clínica(s) encontrada(s)
                     </span>
                   </div>
                   {foundClinicalRecords.map((record) => (
                     <div
                       key={record.id}
-                      className="p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center transition-colors"
+                      className="p-3 sm:p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
                       onClick={() => handleSelectClinicalRecord(record)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
                           {record.pacienteNombreCompleto?.charAt(0) || '?'}
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
                             <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
                               HC: {record.numeroHistoriaClinica}
                             </span>
                           </div>
-                          <div className="font-medium text-slate-900 mt-0.5">
+                          <div className="font-medium text-slate-900 text-sm sm:text-base mt-0.5 break-words">
                             {record.pacienteNombreCompleto || 'Sin Nombre'}
                           </div>
-                          <div className="text-sm text-slate-500">
+                          <div className="text-xs sm:text-sm text-slate-500 mt-0.5">
                             Cédula: {record.pacienteCedula}
                           </div>
                         </div>
-                      </div>
-                      <div className="text-primary text-sm font-medium hover:underline">
-                        Seleccionar →
+                        <div className="text-primary text-xs sm:text-sm font-medium hover:underline shrink-0">
+                          Seleccionar →
+                        </div>
                       </div>
                     </div>
                   ))}

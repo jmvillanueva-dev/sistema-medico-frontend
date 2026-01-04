@@ -556,10 +556,10 @@ export default function MedicalEvolutionHistory({
             {/* Show create button always */}
             <button
               onClick={handleCreate}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30 whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 transition-colors shadow-sm shadow-primary/30"
             >
               <img src={PlusIconWhite.src} alt="Crear" className="w-5 h-5" />
-              <span className="hidden sm:inline">Nueva Evolución</span>
+              <span className="text-xs sm:text-sm">Nueva EM</span>
             </button>
           </div>
         </div>

@@ -144,29 +144,29 @@ export default function EvolutionCreationFlow({ hcId, isAdmin = false }: Evoluti
         <div className="w-full min-h-screen bg-slate-50">
           {/* HC Context Banner */}
           <div className="top-0 left-0 right-0 z-20 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                    <img src={ClipboardIcon.src} alt="HC" className="w-6 h-6" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex flex-col gap-3 sm:gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <img src={ClipboardIcon.src} alt="HC" className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
                         HC: {selectedHC.numeroHistoriaClinica}
                       </span>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-lg">
+                    <h3 className="font-bold text-slate-900 text-base sm:text-lg break-words">
                       {selectedHC.pacienteNombreCompleto}
                     </h3>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-xs sm:text-sm text-slate-600">
                       Cédula: {selectedHC.pacienteCedula}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={handleBackToSelection}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="w-full sm:w-auto sm:self-start inline-flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
                 >
                   <img src={ArrowLeftIcon.src} alt="Volver" className="w-4 h-4" />
                   {hcId ? "Regresar" : "Cambiar HC"}
