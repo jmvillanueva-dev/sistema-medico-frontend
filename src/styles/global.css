@@ -34,7 +34,7 @@
 /* --- FONTS --- */
 @font-face {
   font-family: "Public Sans";
-  src: url("/fonts/PublicSans-Regular.woff2") format("woff2");
+  src: url("/fonts/HostGrotesk-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -42,7 +42,7 @@
 
 @font-face {
   font-family: "Public Sans";
-  src: url("/fonts/PublicSans-Medium.woff2") format("woff2");
+  src: url("/fonts/HostGrotesk-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -50,7 +50,7 @@
 
 @font-face {
   font-family: "Public Sans";
-  src: url("/fonts/PublicSans-SemiBold.woff2") format("woff2");
+  src: url("/fonts/HostGrotesk-SemiBold.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -58,7 +58,7 @@
 
 @font-face {
   font-family: "Public Sans";
-  src: url("/fonts/PublicSans-Bold.woff2") format("woff2");
+  src: url("/fonts/HostGrotesk-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -66,7 +66,7 @@
 
 @font-face {
   font-family: "Public Sans";
-  src: url("/fonts/PublicSans-Black.woff2") format("woff2");
+  src: url("/fonts/HostGrotesk-ExtraBold.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
