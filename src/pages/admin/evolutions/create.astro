@@ -6,6 +6,6 @@ const url = new URL(Astro.request.url);
 const hcId = url.searchParams.get("hcId");
 ---
 
-<DashboardLayout title="Nueva Evolución Médica" role="medical">
-  <EvolutionCreationFlow client:load hcId={hcId} />
+<DashboardLayout title="Nueva Evolución Médica (Admin)">
+  <EvolutionCreationFlow client:load hcId={hcId} isAdmin={true} />
 </DashboardLayout>

@@ -5,11 +5,11 @@ import MedicalEvolutionDetail from "../../../components/MedicalEvolution/Medical
 const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect("/medical/patients");
+  return Astro.redirect("/admin/evolutions");
 }
 ---
 
-<DashboardLayout title="Detalle de Evolución" role="medical">
+<DashboardLayout title="Detalle de Evolución (Admin)">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <MedicalEvolutionDetail client:load evolutionId={id} />
   </div>

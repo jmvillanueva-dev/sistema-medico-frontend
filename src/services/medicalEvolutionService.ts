@@ -84,3 +84,8 @@ export const getDailyReport = (fecha?: string) => {
   const params = fecha ? `?fecha=${fecha}` : '';
   return api.get<ApiResponse<EvolucionReporteDiario[]>>(`${BASE_URL}/reporte-diario${params}`);
 };
+
+// Delete Evolution (Admin only)
+export const deleteEvolucion = (id: string) => {
+  return api.delete<ApiResponse<void>>(`${BASE_URL}/${id}`);
+};

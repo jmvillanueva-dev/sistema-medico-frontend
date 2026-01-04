@@ -5,7 +5,7 @@ import MedicalEvolutionForm from "../../../../components/MedicalEvolution/Medica
 const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect("/medical/patients");
+  return Astro.redirect("/admin/evolutions");
 }
 
 const userCookie = Astro.cookies.get("auth-user")?.value;
@@ -21,20 +21,18 @@ if (userCookie) {
 }
 
 if (!employeeId) {
-  // If no employee ID, maybe redirect to login or show error
-  // For now, we assume middleware handles auth, but we need the ID for the form
   console.warn("No employee ID found in cookie");
 }
 ---
 
-<DashboardLayout title="Nueva Evolución Médica" role="medical">
+<DashboardLayout title="Nueva Evolución Médica (Admin)">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-64px)]">
     <MedicalEvolutionForm
       client:load
       historiaClinicaId={id}
       empleadoId={employeeId}
       onSuccess={() => {
-        window.location.href = `/medical/evolutions/history/${id}`;
+        window.location.href = `/admin/evolutions/history/${id}`;
       }}
       onCancel={() => {
         window.history.back();

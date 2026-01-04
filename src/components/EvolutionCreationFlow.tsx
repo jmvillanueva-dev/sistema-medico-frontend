@@ -16,9 +16,11 @@ type Step = "select-hc" | "form";
 
 interface EvolutionCreationFlowProps {
   hcId?: string | null;
+  isAdmin?: boolean;
 }
 
-export default function EvolutionCreationFlow({ hcId }: EvolutionCreationFlowProps) {
+export default function EvolutionCreationFlow({ hcId, isAdmin = false }: EvolutionCreationFlowProps) {
+  const basePath = isAdmin ? '/admin/evolutions' : '/medical/evolutions';
   const [step, setStep] = useState<Step>("select-hc");
   const [selectedHC, setSelectedHC] = useState<ClinicalRecord | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -69,16 +71,16 @@ export default function EvolutionCreationFlow({ hcId }: EvolutionCreationFlowPro
     if (hcId) {
       window.history.back();
     } else {
-      window.location.href = "/medical/evolutions";
+      window.location.href = basePath;
     }
   };
 
   const handleFormSuccess = () => {
     // Redirect to evolutions list filtered by the selected HC
     if (selectedHC) {
-      window.location.href = `/medical/evolutions?historiaClinicaId=${ selectedHC.id }`;
+      window.location.href = `${ basePath }?historiaClinicaId=${ selectedHC.id }`;
     } else {
-      window.location.href = "/medical/evolutions";
+      window.location.href = basePath;
     }
   };
 
@@ -93,7 +95,7 @@ export default function EvolutionCreationFlow({ hcId }: EvolutionCreationFlowPro
     if (hcId) {
       window.history.back();
     } else {
-      window.location.href = "/medical/evolutions";
+      window.location.href = basePath;
     }
   };
 

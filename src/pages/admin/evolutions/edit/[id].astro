@@ -5,11 +5,11 @@ import MedicalEvolutionForm from "../../../../components/MedicalEvolution/Medica
 const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect("/medical/patients");
+  return Astro.redirect("/admin/evolutions");
 }
 ---
 
-<DashboardLayout title="Editar Evolución Médica" role="medical">
+<DashboardLayout title="Editar Evolución Médica (Admin)">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-64px)]">
     <MedicalEvolutionForm client:load evolutionId={id} />
   </div>

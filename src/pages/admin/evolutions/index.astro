@@ -7,11 +7,12 @@ const url = new URL(Astro.request.url);
 const historiaClinicaId = url.searchParams.get("historiaClinicaId");
 ---
 
-<DashboardLayout title="Evoluciones Médicas" role="medical">
+<DashboardLayout title="Evoluciones Médicas (Admin)">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <MedicalEvolutionHistory
       client:load
       historiaClinicaId={historiaClinicaId || undefined}
+      isAdmin={true}
     />
   </div>
 </DashboardLayout>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getEvolucionesByHistoriaClinica, getEvolucionesByEmpleado, getEvolucionesByFilter } from "../../services/medicalEvolutionService";
+import { getEvolucionesByHistoriaClinica, getEvolucionesByEmpleado, getEvolucionesByFilter, deleteEvolucion } from "../../services/medicalEvolutionService";
 import { getClinicalRecordById, getClinicalRecordByNumber, getFullClinicalRecordByEvolutionId } from "../../services/clinicalRecordService";
 import { getPatientById } from "../../services/patientService";
 import { generateClinicalRecordPDF } from "../../utils/pdfGenerator";
@@ -11,6 +11,7 @@ import PatientFormModal from "../PatientFormModal";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ConfirmationModal from "../ConfirmationModal";
 
 import EditIcon from "@/icons/system/edit.svg";
 import EyeIcon from "@/icons/system/eye.svg";
@@ -78,6 +79,7 @@ interface MedicalEvolutionHistoryProps {
   onViewDetail?: (id: string) => void;
   onEdit?: (id: string) => void;
   onCreate?: () => void; // Optional for global view
+  isAdmin?: boolean; // If true, show delete action
 }
 
 export default function MedicalEvolutionHistory({
@@ -85,14 +87,17 @@ export default function MedicalEvolutionHistory({
   empleadoId,
   onViewDetail,
   onEdit,
-  onCreate
+  onCreate,
+  isAdmin = false
 }: MedicalEvolutionHistoryProps) {
   // Default navigation handlers
+  const basePath = isAdmin ? '/admin/evolutions' : '/medical/evolutions';
+
   const handleViewDetail = (id: string) => {
     if (onViewDetail) {
       onViewDetail(id);
     } else {
-      window.location.href = `/medical/evolutions/${ id }`;
+      window.location.href = `${ basePath }/${ id }`;
     }
   };
 
@@ -100,7 +105,7 @@ export default function MedicalEvolutionHistory({
     if (onEdit) {
       onEdit(id);
     } else {
-      window.location.href = `/medical/evolutions/edit/${ id }`;
+      window.location.href = `${ basePath }/edit/${ id }`;
     }
   };
 
@@ -110,10 +115,38 @@ export default function MedicalEvolutionHistory({
     } else {
       // If historiaClinicaId is available, pass it to skip HC selection
       if (historiaClinicaId) {
-        window.location.href = `/medical/evolutions/create?hcId=${ historiaClinicaId }`;
+        window.location.href = `${ basePath }/create?hcId=${ historiaClinicaId }`;
       } else {
-        window.location.href = '/medical/evolutions/create';
+        window.location.href = `${ basePath }/create`;
       }
+    }
+  };
+
+  // Delete state (Admin only)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [evolutionToDelete, setEvolutionToDelete] = useState<EvolucionMedicaResumen | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (evolution: EvolucionMedicaResumen) => {
+    setEvolutionToDelete(evolution);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!evolutionToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteEvolucion(evolutionToDelete.id);
+      toast.success('Evolución eliminada correctamente');
+      setDeleteModalOpen(false);
+      setEvolutionToDelete(null);
+      // Refresh the list
+      fetchEvolutions();
+    } catch (err) {
+      console.error('Error deleting evolution:', err);
+      toast.error('Error al eliminar la evolución');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -754,11 +787,23 @@ export default function MedicalEvolutionHistory({
                               {generatingPdfId === ev.id ? (
                                 <div className="w-4 h-4 border-2 border-slate-300 border-t-red-600 rounded-full animate-spin"></div>
                               ) : (
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                <svg className="w-4 h-4" viewBox="0 0 15 15">
+                                  <path fill="currentColor" d="M3.5 8H3V7h.5a.5.5 0 0 1 0 1M7 10V7h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z" />
+                                  <path fill="currentColor" fill-rule="evenodd" d="M1 1.5A1.5 1.5 0 0 1 2.5 0h8.207L14 3.293V13.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 1 13.5zM3.5 6H2v5h1V9h.5a1.5 1.5 0 1 0 0-3m4 0H6v5h1.5A1.5 1.5 0 0 0 9 9.5v-2A1.5 1.5 0 0 0 7.5 6m2.5 5V6h3v1h-2v1h1v1h-1v2z" clip-rule="evenodd" />
                                 </svg>
                               )}
                             </button>
+                            {isAdmin && (
+                              <button
+                                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                onClick={() => handleDeleteClick(ev)}
+                                title="Eliminar"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -836,8 +881,9 @@ export default function MedicalEvolutionHistory({
                           {generatingPdfId === ev.id ? (
                             <div className="w-4 h-4 border-2 border-slate-300 border-t-red-600 rounded-full animate-spin"></div>
                           ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            <svg className="w-4 h-4" viewBox="0 0 15 15">
+                              <path fill="currentColor" d="M3.5 8H3V7h.5a.5.5 0 0 1 0 1M7 10V7h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z" />
+                              <path fill="currentColor" fill-rule="evenodd" d="M1 1.5A1.5 1.5 0 0 1 2.5 0h8.207L14 3.293V13.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 1 13.5zM3.5 6H2v5h1V9h.5a1.5 1.5 0 1 0 0-3m4 0H6v5h1.5A1.5 1.5 0 0 0 9 9.5v-2A1.5 1.5 0 0 0 7.5 6m2.5 5V6h3v1h-2v1h1v1h-1v2z" clip-rule="evenodd" />
                             </svg>
                           )}
                         </button>
@@ -954,6 +1000,19 @@ export default function MedicalEvolutionHistory({
           window.location.href = `/medical/evolutions?historiaClinicaId=${ record.id }&backTo=evolutions`;
         }}
       />
+
+      {/* Delete Confirmation Modal (Admin Only) */}
+      {isAdmin && (
+        <ConfirmationModal
+          isOpen={deleteModalOpen}
+          onCancel={() => setDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Eliminar Evolución"
+          message={`¿Está seguro que desea eliminar esta evolución médica? Esta acción no se puede deshacer.`}
+          confirmButtonText={isDeleting ? "Eliminando..." : "Eliminar"}
+          cancelButtonText="Cancelar"
+        />
+      )}
     </div>
   );
 }

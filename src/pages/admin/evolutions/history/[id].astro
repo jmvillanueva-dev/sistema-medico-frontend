@@ -5,23 +5,24 @@ import MedicalEvolutionHistory from "../../../../components/MedicalEvolution/Med
 const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect("/medical/patients");
+  return Astro.redirect("/admin/evolutions");
 }
 ---
 
-<DashboardLayout title="Historial de Evoluciones" role="medical">
+<DashboardLayout title="Historial de Evoluciones (Admin)">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <MedicalEvolutionHistory
       client:load
       historiaClinicaId={id}
+      isAdmin={true}
       onViewDetail={(evolutionId) => {
-        window.location.href = `/medical/evolutions/${evolutionId}`;
+        window.location.href = `/admin/evolutions/${evolutionId}`;
       }}
       onEdit={(evolutionId) => {
-        window.location.href = `/medical/evolutions/edit/${evolutionId}`;
+        window.location.href = `/admin/evolutions/edit/${evolutionId}`;
       }}
       onCreate={() => {
-        window.location.href = `/medical/evolutions/create/${id}`;
+        window.location.href = `/admin/evolutions/create/${id}`;
       }}
     />
   </div>
