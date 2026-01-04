@@ -87,3 +87,21 @@
   h3 { @apply text-xl; }
 }
 
+/* Utilities */
+@layer utilities {
+  /* Hide scrollbars but keep scroll functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Smooth scroll for horizontal tabs */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+}
+
