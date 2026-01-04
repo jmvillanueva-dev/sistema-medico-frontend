@@ -223,12 +223,12 @@ const generateId = (name: string): string => {
                     ]}
                     aria-hidden="true"
                   />
-                  <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200 lg:group-[.collapsed]:opacity-0 lg:group-[.collapsed]:w-0 lg:group-[.collapsed]:overflow-hidden">
+                  <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200 lg:group-[.collapsed]:opacity-0 lg:group-[.collapsed]:w-0 lg:group-[.collapsed]:hidden">
                     {item.name}
                   </span>
                   <span
                     class:list={[
-                      "w-2 h-2 border-r-2 border-b-2 border-current transform rotate-45 transition-all duration-200 lg:group-[.collapsed]:hidden",
+                      "w-2 h-2 border-r-2 border-b-2 border-current transform rotate-45 transition-all duration-200 lg:group-[.collapsed]:hidden shrink-0",
                       { "rotate-[225deg] -translate-y-1": isParentActive },
                     ]}
                   />
