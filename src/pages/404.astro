@@ -1,0 +1,119 @@
+---
+import "../styles/global.css";
+
+// Check for user authentication
+const userCookie = Astro.cookies.get("auth-user")?.value;
+let isLoggedIn = false;
+let userRoles: string[] = [];
+let redirectUrl = "/";
+
+if (userCookie) {
+  try {
+    const user = JSON.parse(userCookie);
+    isLoggedIn = true;
+    userRoles = user?.roles || [];
+
+    // Determine redirect URL based on roles
+    const hasAdmin = userRoles.includes("ROLE_ADMIN");
+    const hasMedical = userRoles.includes("ROLE_MEDICO");
+
+    if (hasAdmin && hasMedical) {
+      // Multiple roles - go to module selector
+      redirectUrl = "/select-module";
+    } else if (hasAdmin) {
+      redirectUrl = "/admin/dashboard";
+    } else if (hasMedical) {
+      redirectUrl = "/medical/dashboard";
+    } else {
+      redirectUrl = "/";
+    }
+  } catch (e) {
+    isLoggedIn = false;
+    redirectUrl = "/";
+  }
+}
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>404 - Página no encontrada</title>
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen flex items-center justify-center p-4"
+  >
+    <div class="max-w-lg w-full text-center">
+      <!-- 404 Illustration -->
+      <div class="mb-8">
+        <img
+          src="/404.svg"
+          alt="404 - Página no encontrada"
+          class="w-48 h-48 mx-auto"
+        />
+      </div>
+
+      <!-- Message -->
+      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+        Página no encontrada
+      </h1>
+      <p class="text-slate-500 mb-8 max-w-md mx-auto">
+        Lo sentimos, la página que estás buscando no existe o ha sido movida.
+        Por favor, verifica la URL o regresa a una página válida.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <!-- Go Back Button -->
+        <button
+          onclick="window.history.back()"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Volver Atrás
+        </button>
+
+        <!-- Primary Action (context-aware) -->
+        <a
+          href={redirectUrl}
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-600 transition-all shadow-sm"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            ></path>
+          </svg>
+          {isLoggedIn ? "Ir al Inicio" : "Iniciar Sesión"}
+        </a>
+      </div>
+
+      <!-- Footer Info with separator -->
+      <div class="mt-16 pt-6 pb-6 border-b border-slate-200">
+        <p class="text-xs text-slate-400">
+          Si crees que esto es un error, contacta al administrador del sistema.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
