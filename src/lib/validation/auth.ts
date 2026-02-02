@@ -21,13 +21,15 @@ const strongPasswordMessage =
 export const loginSchema = z.object({
   email: z
     .string()
-    .email({ message: "Formato de correo electrónico inválido." })
-    .min(1, { message: "El correo electrónico es requerido." }),
+    .trim()
+    .min(1, { message: "El correo electrónico es requerido." })
+    .email({ message: "Formato de correo electrónico inválido." }),
 
   password: z
     .string()
-    .min(6, { message: "La contraseña debe tener al menos 6 caracteres." })
-    .min(1, { message: "La contraseña es requerida." }),
+    .trim()
+    .min(1, { message: "La contraseña es requerida." })
+    .min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -39,6 +41,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
+    .trim()
     .min(1, { message: "El correo electrónico es requerido." })
     .email({ message: "Formato de correo electrónico inválido." }),
 });
@@ -53,10 +56,12 @@ export const resetPasswordSchema = z
   .object({
     nuevaPassword: z
       .string()
+      .trim()
       .min(1, { message: "La contraseña es requerida." })
       .min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
     confirmarPassword: z
       .string()
+      .trim()
       .min(1, { message: "Debes confirmar la contraseña." }),
   })
   .refine((data) => data.nuevaPassword === data.confirmarPassword, {
@@ -75,13 +80,16 @@ export const forcePasswordChangeSchema = z
   .object({
     contrasenaActual: z
       .string()
+      .trim()
       .min(1, { message: "La contraseña actual es requerida." }),
     nuevaContrasena: z
       .string()
+      .trim()
       .min(1, { message: "La nueva contraseña es requerida." })
       .regex(strongPasswordRegex, { message: strongPasswordMessage }),
     confirmarContrasena: z
       .string()
+      .trim()
       .min(1, { message: "Debes confirmar la nueva contraseña." }),
   })
   .refine((data) => data.nuevaContrasena === data.confirmarContrasena, {

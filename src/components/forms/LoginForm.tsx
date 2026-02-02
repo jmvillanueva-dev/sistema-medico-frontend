@@ -13,9 +13,10 @@ import { Input } from "@/components/common/Input";
 const loginSchema = z.object({
   email: z
     .string()
+    .trim()
     .min(1, "El email no puede estar vacío.")
     .email("El email no es válido."),
-  password: z.string().min(1, "La contraseña no puede estar vacía."),
+  password: z.string().trim().min(1, "La contraseña no puede estar vacía."),
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
