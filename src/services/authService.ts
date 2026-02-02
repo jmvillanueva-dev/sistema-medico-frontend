@@ -1,4 +1,5 @@
 import api from "./api";
+import type { ForcePasswordChangeRequest } from "@/types/user";
 
 /**
  * Servicio de autenticación para manejar operaciones relacionadas
@@ -8,7 +9,7 @@ import api from "./api";
 /**
  * Solicita el restablecimiento de contraseña enviando un email
  * al usuario con un token de recuperación.
- * 
+ *
  * @param email - Email del usuario
  * @returns Promise con la respuesta de la API
  */
@@ -18,7 +19,7 @@ export const forgotPassword = async (email: string) => {
 
 /**
  * Restablece la contraseña del usuario usando un token de recuperación.
- * 
+ *
  * @param token - Token de recuperación recibido por email
  * @param nuevaPassword - Nueva contraseña del usuario
  * @returns Promise con la respuesta de la API
@@ -29,7 +30,7 @@ export const resetPassword = async (token: string, nuevaPassword: string) => {
 
 /**
  * Verifica la cuenta de un nuevo usuario usando el token de verificación.
- * 
+ *
  * @param token - Token de verificación recibido por email
  * @returns Promise con la respuesta de la API
  */
@@ -37,3 +38,13 @@ export const verifyAccount = async (token: string) => {
   return api.post(`/auth/verify/${token}`);
 };
 
+/**
+ * Cambia la contraseña de forma obligatoria para usuarios nuevos.
+ * Este endpoint es público (no requiere JWT) pero verifica la contraseña actual.
+ *
+ * @param data - Datos del cambio de contraseña (email, contraseña actual y nueva)
+ * @returns Promise con la respuesta de la API
+ */
+export const forcePasswordChange = async (data: ForcePasswordChangeRequest) => {
+  return api.post("/auth/force-password-change", data);
+};

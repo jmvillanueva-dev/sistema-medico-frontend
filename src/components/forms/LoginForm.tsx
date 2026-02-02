@@ -52,7 +52,7 @@ const LoginForm: React.FC = () => {
         const { isLocked, remainingTime } = getLockoutStatus();
         if (isLocked) {
           setLockoutMessage(
-            `Demasiados intentos. Intente de nuevo en ${remainingTime} minutos.`
+            `Demasiados intentos. Intente de nuevo en ${remainingTime} minutos.`,
           );
         } else {
           setLockoutMessage(null);
@@ -73,7 +73,16 @@ const LoginForm: React.FC = () => {
     setLockoutMessage(null);
 
     try {
-      await login(data);
+      const result = await login(data);
+
+      // Verificar si requiere cambio de contraseña obligatorio
+      if (result?.requiereCambioPassword) {
+        // Redirigir a la página de cambio obligatorio con el email
+        window.location.href = `/auth/force-change-password?email=${encodeURIComponent(result.email)}`;
+        return;
+      }
+
+      // Si no requiere cambio, continuar al dashboard normal
       const userRoles = useAuthStore.getState().user?.roles || [];
       const path = getDashboardPath(userRoles);
       window.location.href = path;
@@ -92,7 +101,10 @@ const LoginForm: React.FC = () => {
   const isFormDisabled = loading || lockoutMessage !== null || !isInitialized;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="w-full max-w-md space-y-6"
+    >
       {/* Mostrar error global de la store o el mensaje de bloqueo */}
       {lockoutMessage ? (
         <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
@@ -161,7 +173,9 @@ const LoginForm: React.FC = () => {
           onClick={() => setShowPassword(!showPassword)}
           className="absolute right-3 top-[38px] text-slate-400 hover:text-slate-600 focus:outline-none"
           disabled={isFormDisabled}
-          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+          aria-label={
+            showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+          }
         >
           {showPassword ? (
             <svg
@@ -220,4 +234,3 @@ const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
-

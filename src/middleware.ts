@@ -3,6 +3,14 @@ import { getDashboardPath, hasPermission } from "@/utils/navigation";
 
 const protectedPaths = ["/admin", "/medical", "/select-module", "/profile"];
 
+// Rutas públicas de autenticación (no requieren JWT)
+const publicAuthPaths = [
+  "/auth/force-change-password",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/verify",
+];
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
@@ -29,10 +37,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     "Middleware - Path:",
     pathname,
     "User:",
-    user ? "Authenticated" : "Not authenticated"
+    user ? "Authenticated" : "Not authenticated",
   );
 
   // --- Lógica de Redirección ---
+
+  // 0. Permitir rutas públicas de autenticación sin redirección
+  const isPublicAuthPath = publicAuthPaths.some((p) => pathname.startsWith(p));
+  if (isPublicAuthPath) {
+    return next();
+  }
 
   // 1. Si el usuario ESTÁ autenticado
   if (token && user) {
@@ -68,7 +82,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     console.log("Not authenticated, redirecting to login");
     return context.redirect(
       `/login?redirect=${encodeURIComponent(pathname)}`,
-      302
+      302,
     );
   }
 

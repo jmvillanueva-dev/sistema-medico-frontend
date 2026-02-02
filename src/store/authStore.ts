@@ -14,12 +14,20 @@ import {
 import { useCatalogStore } from "./catalogStore";
 import type { User } from "@/types/user";
 
+interface LoginResult {
+  requiereCambioPassword: boolean;
+  email: string;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   error: string | null;
   loading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<LoginResult | void>;
   logout: () => void;
   initializeAuth: () => void;
 }
@@ -53,6 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   /**
    * Maneja el intento de inicio de sesión.
+   * @returns Objeto con información adicional del login (ej: requiereCambioPassword)
    */
   login: async (credentials) => {
     set({ loading: true, error: null });
@@ -78,11 +87,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         employeeId,
         name,
         lastName,
+        requiereCambioPassword,
       } = responseData;
+
+      // 3. Si requiere cambio de contraseña, NO guardar tokens ni autenticar
+      // Solo retornar la información para que el componente redirija
+      if (requiereCambioPassword) {
+        set({ loading: false });
+        return { requiereCambioPassword: true, email };
+      }
 
       const user: User = { email, roles, employeeId, name, lastName };
 
-      // 3. Guardar en Cookies
+      // 4. Guardar en Cookies (solo si NO requiere cambio de contraseña)
       const cookieOptions = {
         secure: import.meta.env.PROD,
         sameSite: "strict",
@@ -92,12 +109,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       Cookies.set("auth-refresh-token", refreshToken, cookieOptions);
       Cookies.set("auth-user", JSON.stringify(user), cookieOptions);
 
-      // 4. Resetear intentos fallidos
+      // 5. Resetear intentos fallidos
       localStorage.removeItem(ATTEMPTS_KEY);
       localStorage.removeItem(LOCKOUT_KEY);
 
-      // 5. Actualizar estado
+      // 6. Actualizar estado
       set({ isAuthenticated: true, user, loading: false });
+
+      return { requiereCambioPassword: false, email };
     } catch (err: any) {
       set({ loading: false });
 
